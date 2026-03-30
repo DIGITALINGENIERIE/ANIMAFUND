@@ -1,0 +1,483 @@
+PROMPT POUR REPLIT – ANIMAFUND GOD TIER PROMPT GENERATOR
+CONTEXTE GÉNÉRAL
+Tu vas concevoir un générateur de prompts God Tier pour une plateforme appelée ANIMAFUND. Cette plateforme ne produit pas directement les documents finaux (dossiers de financement, pitch decks, art bibles, etc.). Elle produit des prompts parfaitement structurés destinés à être injectés dans des IA génératives externes comme Meta.ai, Roboneo, Google Flow Studio, Midjourney, Runway, GPT-5.2, Claude, etc.
+
+L’objectif est que n’importe quel utilisateur (studio d’animation, développeur jeu vidéo, producteur) puisse, via une interface simple, sélectionner un module, remplir des formulaires, et obtenir 3 variantes de prompts God Tier (expert, créatif, template) pour chaque sous-module, avec un système de scoring garantissant une qualité irréprochable.
+
+Le résultat final doit être un outil fonctionnel sur Replit, avec une UI cartographique, des formulaires dynamiques, et un moteur de prompts basé sur GPT-5.2 ou Claude.
+
+PRINCIPES FONDAMENTAUX
+Zéro production directe : L’outil ne génère jamais de PDF, PPT, ou document final. Il ne génère que des prompts.
+
+Qualité absolue : Chaque prompt doit être "God Tier" – c’est-à-dire si parfaitement structuré qu’injecté dans Meta.ai ou autre, le résultat est indistinguable d’un travail de consultant expert.
+
+Modularité : 10 modules principaux, chacun avec ses sous-modules. Chaque sous-module peut être généré indépendamment.
+
+Scoring obligatoire : Un système de scoring (0-100) évalue chaque prompt. En dessous d’un seuil (ex: 85), le prompt est automatiquement régénéré avec des instructions d’amélioration ciblées.
+
+3 variantes par prompt : Chaque sous-module produit 3 prompts de styles différents : Expert/Formel, Créatif/Incisif, Structuré/Template.
+
+Formulaires intelligents : Un formulaire commun (projet) + un formulaire spécifique par module. Les données du formulaire commun alimentent tous les prompts pour garantir la cohérence.
+
+Interface cartographique : Chaque module est une carte colorée avec ses sous-modules affichés, un statut (généré ou non), et un score visible.
+
+ARCHITECTURE DE L’APPLICATION
+1. Structure des fichiers (à créer)
+text
+anima-fund/
+├── app.py                     # Point d’entrée Streamlit
+├── config.py                  # Constantes, seuils, clés API (à mettre en secrets)
+├── requirements.txt           # Dépendances
+├── modules/
+│   ├── __init__.py
+│   ├── module_1.py            # Dossier CNC
+│   ├── module_2.py            # Pitch deck investisseurs
+│   ├── module_3.py            # Art Bible
+│   ├── module_4.py            # Plan de production Gantt
+│   ├── module_5.py            # Budget prévisionnel
+│   ├── module_6.py            # Dossier concours
+│   ├── module_7.py            # Rapport d’activité
+│   ├── module_8.py            # Game Design Document
+│   ├── module_9.py            # Business plan JV
+│   └── module_10.py           # Subventions JV
+├── forms/
+│   ├── __init__.py
+│   ├── commun.py              # Définition du formulaire commun
+│   └── specifiques.py         # Dictionnaire des formulaires spécifiques par module
+├── prompts/
+│   ├── __init__.py
+│   ├── templates/             # Dossier contenant les templates Markdown par module/sous-module
+│   ├── generated/             # Dossier où sont sauvegardés les prompts générés
+│   └── scoring.py             # Fonctions de scoring et régénération
+├── llm/
+│   ├── __init__.py
+│   └── client.py              # Wrapper unifié pour appeler GPT-5.2 ou Claude
+├── ui/
+│   ├── __init__.py
+│   ├── cards.py               # Fonction pour afficher les cartes colorées des modules
+│   └── forms.py               # Fonction pour générer dynamiquement les formulaires
+└── utils/
+    ├── __init__.py
+    └── file_utils.py          # Sauvegarde/chargement des prompts
+2. Configuration (config.py)
+Contient les constantes suivantes :
+
+SEUIL_GOD_TIER = 85 (score minimum pour considérer un prompt comme God Tier)
+
+MAX_ITERATIONS = 3 (nombre max de tentatives de régénération)
+
+PLATEFORMES_SUPPORTEES = ["Meta.ai", "Roboneo", "Google Flow Studio", "Midjourney", "Runway", "GPT-5.2", "Claude"]
+
+COULEURS_MODULES = dictionnaire associant chaque module à une couleur (ex: 1: "#FF4444", 2: "#FF8844", etc.)
+
+STYLES_VARIANTES = ["expert", "creatif", "template"]
+
+Les clés API (OpenAI, Anthropic) doivent être stockées dans les Secrets de Replit, jamais en clair.
+
+3. Formulaire commun (forms/commun.py)
+Définit les champs suivants, obligatoires pour tout projet :
+
+Nom du champ	Type	Description
+projet_nom	string	Nom du projet
+projet_logline	text	Une phrase accrocheuse
+projet_synopsis_court	text	200-300 mots
+projet_genre	select	Animation 2D / Animation 3D / Jeu vidéo / Hybride
+projet_cible	string	Public cible (ex: 6-10 ans, Adultes)
+projet_ton	multiselect	Émouvant, Humoristique, Épique, Poétique, Sombre
+projet_references	array	Liste de références artistiques (ex: Spider-Verse, Arcane)
+projet_equipe	array de {nom, role, bio_courte}	Équipe clé
+projet_budget_total	number	Budget total en euros
+projet_montant_recherche	number	Montant recherché en euros
+projet_avancement	select	Idée / Écriture / Concept art / Prototype / Démo
+projet_societe	string	Nom de la société
+projet_siret	string	Numéro SIRET
+projet_region	string	Région du porteur
+4. Modules et sous-modules
+Chaque module a :
+
+Un nom, une couleur, une icône (emoji)
+
+Une liste de sous-modules
+
+Un formulaire spécifique (voir section 5)
+
+MODULE 1 – Dossier de financement CNC / régions / Europe
+Couleur : Rouge #FF4444
+
+ID	Sous-module	Description
+1.1	Structure administrative	Présentation société, statuts, SIRET, agrément
+1.2	Synopsis & note d’intention	Synopsis détaillé, intentions artistiques
+1.3	Équipe clé	CV, biographies, lettres d’engagement
+1.4	Calendrier prévisionnel	Planning phases (écriture, prod, post-prod)
+1.5	Budget détaillé	Grille CNC/FJV, salaires, postes techniques
+1.6	Plan de financement	Sources (CNC, région, SOFICA, préachats)
+1.7	Annexes	Justificatifs, devis, contrats, extraits
+1.8	Lettres d’engagement	Modèles pour éditeurs, coproducteurs
+MODULE 2 – Pitch deck investisseurs animation
+Couleur : Orange #FF8844
+
+ID	Sous-module	Description
+2.1	Problème / opportunité	Étude marché, gap, tendances
+2.2	Concept & univers	Logline, synopsis, univers visuel
+2.3	Équipe & expertises	Talents clés, crédibilité
+2.4	État d’avancement	Script, concept art, teaser
+2.5	Modèle économique	Revenus, ventes, licences
+2.6	Plan de financement & besoins	Montant recherché, utilisation
+2.7	Roadmap	Jalons clés, livrables
+2.8	Annexes visuelles	Concept art, moodboard
+MODULE 3 – Bible artistique (Art Bible)
+Couleur : Violet #AA66FF
+
+ID	Sous-module	Description
+3.1	Introduction & ton	Intentions, cible, références
+3.2	Personnages principaux	Design, expressions, silhouettes
+3.3	Personnages secondaires	Créatures, figurants
+3.4	Environnements	Lieux clés, plans, ambiances
+3.5	Palette couleur & lumière	Harmonies, mood par scène
+3.6	Accessoires & props	Objets emblématiques
+3.7	Typo & graphisme	Logo, charte graphique
+3.8	Storyboard / vignettes clés	Scènes emblématiques
+MODULE 4 – Plan de production Gantt
+Couleur : Vert #44FF44
+
+ID	Sous-module	Description
+4.1	Découpage en phases	Développement, préprod, prod, post
+4.2	Jalons clés	Dépôts CNC, livrables, screenings
+4.3	Ressources humaines	Équipe par période, ETP
+4.4	Dépendances critiques	Liens entre tâches
+4.5	Marges & buffers	Aléas, sécurité
+MODULE 5 – Budget prévisionnel détaillé (animation)
+Couleur : Bleu foncé #4444FF
+
+ID	Sous-module	Description
+5.1	Masse salariale	Postes, taux, charges, durée
+5.2	Logiciels & licences	Outils, versions, nombre postes
+5.3	Locaux & frais généraux	Loyer, électricité, assurances
+5.4	Sous-traitance	Prestataires, forfaits
+5.5	Frais de déplacement	Tournages, repérages
+5.6	Imprévus	5-15% du total
+MODULE 6 – Dossier technique concours (Annecy, etc.)
+Couleur : Jaune #FFFF44
+
+ID	Sous-module	Description
+6.1	Formulaire officiel	Remplissage format imposé
+6.2	Synopsis & intentions	Version courte/longue
+6.3	Biographies équipe	CV, filmographie
+6.4	Extraits visuels	Sélection images, teaser embed
+6.5	Note de réalisation	Parti pris, références
+6.6	Justificatifs	Droits, engagements
+MODULE 7 – Rapport d’activité annuel (subventions)
+Couleur : Gris #AAAAAA
+
+ID	Sous-module	Description
+7.1	Bilan qualitatif	Réalisations, projets, jalons
+7.2	Bilan quantitatif	KPI, production, équipe
+7.3	Comptes simplifiés	Bilan, compte de résultat
+7.4	Perspectives	Projets à venir, besoins
+7.5	Annexes justificatives	Attestations, extraits presse
+MODULE 8 – Game Design Document (GDD) complet
+Couleur : Marron #AA8844
+
+ID	Sous-module	Description
+8.1	Vision & concept	Pitch, cible, proposition unique
+8.2	Mécaniques core loop	Gameplay, actions, progression
+8.3	Systèmes & progression	Skills, inventaire, crafting
+8.4	UI/UX	Flux, écrans, navigation
+8.5	Sound design & musique	Ambiance, SFX, thèmes
+8.6	Narrative & level design	Structure niveaux, narration
+8.7	Économie & monétisation	Devise, achats, saisonnalité
+8.8	Spécifications techniques	Plateformes, perf, contraintes
+MODULE 9 – Business plan éditeur / investisseur JV
+Couleur : Bleu clair #44AAFF
+
+ID	Sous-module	Description
+9.1	Synthèse executive	1 page exécutive
+9.2	Analyse marché	Taille, tendances, concurrents
+9.3	Modèle économique	Revenus, pricing, LTV, CAC
+9.4	KPI & projections	DAU, rétention, conversion
+9.5	Roadmap produit	Updates, saisons, post-launch
+9.6	Besoins & utilisation fonds	Montant, allocation
+9.7	Prévisions financières	3 ans, compte de résultat
+MODULE 10 – Dossier subventions JV (FJV, CNC, Europe Creative)
+Couleur : Vert clair #88FF88
+
+ID	Sous-module	Description
+10.1	Fiche projet	Format CNC/FJV
+10.2	Démo / teaser	Description, liens
+10.3	Analyse marché	Positionnement, niches
+10.4	Budget & plan de financement	Grilles CNC/FJV
+10.5	Équipe & expertises	CV, compétences techniques
+10.6	Calendrier	Phases alpha, beta, release
+5. Formulaire spécifique par module
+Chaque module a des champs supplémentaires. Voici les plus importants (à implémenter dans forms/specifiques.py sous forme de dictionnaire).
+
+Module 1 (Dossier CNC)
+date_depot_prevue (date)
+
+commission_cible (select: CNC / Région / Europe Creative)
+
+projet_duree_mois (number)
+
+aides_deja_obtenues (text)
+
+partenaires_engages (array de {nom, type, montant})
+
+Module 2 (Pitch deck)
+investisseurs_cibles (array)
+
+montant_recherche (number) – déjà dans formulaire commun mais peut être précisé
+
+teaser_disponible (boolean)
+
+concept_art_disponible (boolean)
+
+Module 3 (Art Bible)
+nombre_personnages_principaux (number)
+
+style_artistique (select: 2D, 3D, Pixel art, etc.)
+
+references_visuelles (array de liens ou descriptions)
+
+contraintes_techniques (text)
+
+Module 4 (Gantt)
+date_debut_souhaitee (date)
+
+contraintes_externes (text)
+
+ressources_disponibles (text)
+
+Module 5 (Budget)
+type_animation (select: 2D, 3D, Stop-motion, Hybride)
+
+duree_secondes (number)
+
+taille_equipe_max (number)
+
+Module 6 (Concours)
+nom_concours (select: Annecy, Cartoon, etc.)
+
+date_limite (date)
+
+format_exigences (text) – lien ou description
+
+Module 7 (Rapport)
+annee_rapport (number)
+
+subventions_percues (number)
+
+nombre_projets_annee (number)
+
+Module 8 (GDD)
+plateformes_cibles (multiselect: PC, Switch, PS5, Xbox, Mobile)
+
+moteur_utilise (string: Unity, Unreal, etc.)
+
+multiplayer (boolean)
+
+taille_equipe_dev (number)
+
+Module 9 (Business plan JV)
+investisseurs_cibles (array)
+
+taux_rendement_attendu (number)
+
+strategie_sortie (text)
+
+Module 10 (Subventions JV)
+type_subvention (select: FJV, CNC Innovation, Europe Creative)
+
+demo_jouable (boolean)
+
+date_soumission (date)
+
+6. Template de prompt God Tier (structure)
+Chaque sous-module doit avoir un template Markdown dans prompts/templates/[module]/[sous_module].md. Ce template doit contenir les 9 sections suivantes avec des placeholders {{variable}} pour injection.
+
+markdown
+# PROMPT GOD TIER — {{module_nom}} — {{sous_module_nom}}
+
+## 1. RÔLE & CONTEXTE
+Tu es un expert en {{domaine_expertise}} avec plus de {{annees_experience}} années d’expérience dans le secteur {{secteur}}. Tu as déjà accompagné plus de {{nombre_projets}} projets similaires à succès, avec un taux d’obtention de financement supérieur à {{taux_reussite}}%.
+
+## 2. CONTEXTE PROJET (données formulaire commun)
+- Nom du projet : {{projet_nom}}
+- Logline : {{projet_logline}}
+- Synopsis : {{projet_synopsis_court}}
+- Genre : {{projet_genre}}
+- Public cible : {{projet_cible}}
+- Ton : {{projet_ton}}
+- Références artistiques : {{projet_references}}
+- Équipe clé : {{projet_equipe}}
+- Budget total : {{projet_budget_total}} €
+- Montant recherché : {{projet_montant_recherche}} €
+- Avancement : {{projet_avancement}}
+- Société : {{projet_societe}} (SIRET: {{projet_siret}})
+- Région : {{projet_region}}
+
+## 3. CONTEXTE SPÉCIFIQUE MODULE
+{{specifique_contexte}}
+
+## 4. OBJECTIF PRINCIPAL
+Le document que tu vas générer (via tes instructions) doit permettre de {{objectif_principal}}. Il sera utilisé pour {{usage_cible}}. Il doit convaincre {{jury_cible}} de {{action_attendue}}.
+
+## 5. CONTRAINTES & FORMAT
+- Format de sortie attendu : {{format_sortie}}
+- Longueur : {{longueur}} pages/slides
+- Langue : {{langue}}
+- Contraintes réglementaires : {{contraintes_reglementaires}} (version {{version_norme}})
+- Doit impérativement inclure : {{checklist_obligatoire}}
+
+## 6. STRUCTURE OBLIGATOIRE
+1. {{section_1}}
+2. {{section_2}}
+3. {{section_3}}
+4. {{section_4}}
+5. {{section_5}}
+6. {{section_6}} (si applicable)
+7. Annexes (si applicable)
+
+## 7. STYLE & TON
+{{style_ton}} : utilise un vocabulaire {{niveau_technicite}}, un ton {{tonalite}}, et des formulations {{style_communication}}.
+
+## 8. EXEMPLES DE RÉFÉRENCE (few-shot)
+Voici des exemples de ce qui a fonctionné par le passé pour des projets similaires :
+{{exemples}}
+
+## 9. INSTRUCTIONS DE QUALITÉ
+- Absolument aucune hallucination : tous les chiffres, dates et noms doivent être cohérents avec le contexte fourni.
+- Respect strict des normes {{normes}} dans leur version {{version}}.
+- Cohérence visuelle et narrative avec le synopsis et l’univers décrit.
+- Si une information est manquante, ne l’invente pas : indique [À COMPLÉTER PAR LE CLIENT] et explique pourquoi c’est nécessaire.
+- Utilise un langage adapté au secteur (animation ou jeu vidéo) sans jargon incompréhensible pour les non-initiés.
+- Le résultat final doit être prêt à être injecté directement dans {{plateforme_cible}} sans modification humaine.
+7. Système de scoring (prompts/scoring.py)
+Le scoring est effectué par le LLM lui-même. Chaque prompt généré est noté sur 100 selon les critères suivants (à envoyer au LLM avec la consigne "Note ce prompt de 0 à 100 selon ces critères") :
+
+Critère	Pondération	Description
+Complétude	20%	Toutes les sections du template sont présentes et remplies
+Spécificité	20%	Le prompt contient des éléments propres au projet, pas du générique
+Précision réglementaire	15%	Référence aux bonnes normes avec liens/versions
+Clarté structure	15%	La structure de sortie est explicite et non ambiguë
+Few-shot quality	10%	Les exemples sont pertinents et bien choisis
+Contrôle qualité	10%	Instructions explicites pour éviter hallucinations
+Adaptation plateforme	10%	Le prompt est optimisé pour la plateforme cible
+Seuils :
+
+Score < 70 : régénération automatique avec feedback
+
+70 ≤ score < 85 : livraison avec mention "bon"
+
+85 ≤ score < 95 : livraison avec mention "excellent"
+
+Score ≥ 95 : livraison avec mention "God Tier"
+
+Régénération :
+Si score < SEUIL_GOD_TIER et itération < MAX_ITERATIONS :
+
+Extraire les critères faibles du retour du LLM
+
+Générer un nouveau prompt avec instruction : "Améliore spécifiquement les points suivants : [critères faibles]"
+
+Re-scorer, jusqu’à 3 itérations.
+
+8. Interface utilisateur (Streamlit)
+Page principale :
+
+Bandeau supérieur : Titre "ANIMAFUND – God Tier Prompt Generator"
+
+Formulaire commun (dépliable, avec état sauvegardé en session)
+
+Grille de cartes : 10 cartes colorées, chacune avec :
+
+Nom du module
+
+Icône
+
+Liste des sous-modules (avec checkbox ou statut)
+
+Score global du module (moyenne des sous-modules générés)
+
+Bouton "Générer tout le module" ou "Générer ce sous-module"
+
+Zone de résultats :
+
+Quand un sous-module est généré, afficher :
+
+3 onglets (Expert, Créatif, Template)
+
+Score et nombre d’itérations
+
+Boutons de copie et de téléchargement (fichier .md)
+
+Barre latérale :
+
+État de progression (nombre de sous-modules générés / total)
+
+Sélection du seuil de scoring (paramètre ajustable)
+
+Sélection de la plateforme cible par défaut (Meta.ai, Roboneo, etc.)
+
+Comportement attendu :
+
+Les données du formulaire commun sont sauvegardées dans st.session_state pour persister entre les pages.
+
+La génération d’un sous-module appelle les fonctions du module correspondant, injecte les données des formulaires, lance le scoring, et sauvegarde le résultat dans un fichier JSON + Markdown dans prompts/generated/.
+
+L’utilisateur peut régénérer un sous-module (nouvelle itération) ou passer au suivant.
+
+9. Backend LLM (llm/client.py)
+Wrapper unifié pour appeler GPT-5.2 ou Claude.
+
+Fonctions nécessaires :
+
+call_llm(prompt_system, prompt_user, model="gpt-5.2", temperature=0.7) → retourne le texte généré.
+
+score_prompt(prompt_text) → retourne un dictionnaire {score_total, criteres_details, weak_points}.
+
+generate_variants(prompt_base, style) → retourne une version du prompt adaptée au style (expert, creatif, template).
+
+Les appels doivent gérer les retries, les timeouts, et les quotas.
+
+10. Sauvegarde et chargement
+Chaque prompt généré est sauvegardé dans prompts/generated/[module_id]/[sous_module_id]/ avec :
+
+prompt_v1_expert.md
+
+prompt_v2_creatif.md
+
+prompt_v3_template.md
+
+metadata.json contenant : score, iterations, date, version, plateforme_cible, variantes utilisées.
+
+Un fichier progress.json global garde la trace de ce qui a été généré pour la session en cours (ou pour l’utilisateur si authentification ajoutée plus tard).
+
+11. Dépendances techniques (requirements.txt)
+text
+streamlit>=1.28.0
+openai>=1.0.0
+anthropic>=0.18.0
+pydantic>=2.0.0
+python-dotenv>=1.0.0
+markdown>=3.5.0
+pandas>=2.0.0
+12. Instructions finales pour Replit
+Crée la structure de dossiers exactement comme décrite.
+
+Implémente le formulaire commun avec tous les champs listés.
+
+Implémente les 10 modules avec leurs sous-modules et leurs formulaires spécifiques.
+
+Crée les templates de prompts pour chaque sous-module (au moins un exemple par module, les autres pouvant être générés par similarité).
+
+Implémente le moteur de génération : assemble le template, injecte les données, appelle le LLM pour enrichir, score, régénère si besoin.
+
+Génère systématiquement 3 variantes (expert, créatif, template) pour chaque prompt final.
+
+Affiche les cartes colorées avec les sous-modules, les scores, et les boutons de génération.
+
+Permet le téléchargement des prompts générés au format Markdown.
+
+Stocke les clés API dans les Secrets de Replit (OPENAI_API_KEY, ANTHROPIC_API_KEY).
+
+Teste avec un scénario complet : remplir formulaire commun → sélectionner module 1, sous-module 1.1 → générer → vérifier score > 85 → afficher 3 variantes.

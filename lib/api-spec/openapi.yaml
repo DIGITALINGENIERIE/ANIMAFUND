@@ -1,0 +1,549 @@
+openapi: 3.1.0
+info:
+  title: Api
+  version: 0.1.0
+  description: ANIMAFUND God Tier Prompt Generator API
+servers:
+  - url: /api
+    description: Base API path
+tags:
+  - name: health
+    description: Health operations
+  - name: projects
+    description: Project management
+  - name: prompts
+    description: Prompt generation and management
+paths:
+  /healthz:
+    get:
+      operationId: healthCheck
+      tags: [health]
+      summary: Health check
+      responses:
+        "200":
+          description: Healthy
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthStatus"
+
+  /projects:
+    get:
+      operationId: listProjects
+      tags: [projects]
+      summary: List all projects
+      responses:
+        "200":
+          description: List of projects
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Project"
+    post:
+      operationId: createProject
+      tags: [projects]
+      summary: Create a new project
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateProjectRequest"
+      responses:
+        "201":
+          description: Project created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Project"
+
+  /projects/{id}:
+    get:
+      operationId: getProject
+      tags: [projects]
+      summary: Get a project by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Project found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Project"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    put:
+      operationId: updateProject
+      tags: [projects]
+      summary: Update a project
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateProjectRequest"
+      responses:
+        "200":
+          description: Project updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Project"
+    delete:
+      operationId: deleteProject
+      tags: [projects]
+      summary: Delete a project
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
+  /prompts/generate:
+    post:
+      operationId: generatePrompt
+      tags: [prompts]
+      summary: Generate God Tier prompts for a sub-module
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GeneratePromptRequest"
+      responses:
+        "200":
+          description: Generated prompts with scoring
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GeneratePromptResponse"
+
+  /prompts/{projectId}:
+    get:
+      operationId: listPrompts
+      tags: [prompts]
+      summary: List all generated prompts for a project
+      parameters:
+        - name: projectId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: List of generated prompts
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/GeneratedPrompt"
+
+  /prompts/{projectId}/{moduleId}/{submoduleId}:
+    get:
+      operationId: getPrompt
+      tags: [prompts]
+      summary: Get a specific generated prompt
+      parameters:
+        - name: projectId
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: moduleId
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: submoduleId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Generated prompt
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GeneratedPrompt"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /modules:
+    get:
+      operationId: listModules
+      tags: [prompts]
+      summary: Get all modules and sub-modules metadata
+      responses:
+        "200":
+          description: Module definitions
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Module"
+
+components:
+  schemas:
+    HealthStatus:
+      type: object
+      properties:
+        status:
+          type: string
+      required:
+        - status
+
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+        message:
+          type: string
+      required:
+        - error
+        - message
+
+    TeamMember:
+      type: object
+      properties:
+        nom:
+          type: string
+        role:
+          type: string
+        bioCourte:
+          type: string
+      required:
+        - nom
+        - role
+        - bioCourte
+
+    Project:
+      type: object
+      properties:
+        id:
+          type: integer
+        nom:
+          type: string
+        logline:
+          type: string
+        synopsisCourt:
+          type: string
+        genre:
+          type: string
+          enum: [animation_2d, animation_3d, jeu_video, hybride]
+        cible:
+          type: string
+        ton:
+          type: array
+          items:
+            type: string
+        references:
+          type: array
+          items:
+            type: string
+        equipe:
+          type: array
+          items:
+            $ref: "#/components/schemas/TeamMember"
+        budgetTotal:
+          type: number
+        montantRecherche:
+          type: number
+        avancement:
+          type: string
+          enum: [idee, ecriture, concept_art, prototype, demo]
+        societe:
+          type: string
+        siret:
+          type: string
+        region:
+          type: string
+        createdAt:
+          type: string
+        updatedAt:
+          type: string
+      required:
+        - id
+        - nom
+        - logline
+        - synopsisCourt
+        - genre
+        - cible
+        - budgetTotal
+        - montantRecherche
+        - avancement
+        - societe
+        - siret
+        - region
+        - createdAt
+        - updatedAt
+
+    CreateProjectRequest:
+      type: object
+      properties:
+        nom:
+          type: string
+        logline:
+          type: string
+        synopsisCourt:
+          type: string
+        genre:
+          type: string
+          enum: [animation_2d, animation_3d, jeu_video, hybride]
+        cible:
+          type: string
+        ton:
+          type: array
+          items:
+            type: string
+        references:
+          type: array
+          items:
+            type: string
+        equipe:
+          type: array
+          items:
+            $ref: "#/components/schemas/TeamMember"
+        budgetTotal:
+          type: number
+        montantRecherche:
+          type: number
+        avancement:
+          type: string
+          enum: [idee, ecriture, concept_art, prototype, demo]
+        societe:
+          type: string
+        siret:
+          type: string
+        region:
+          type: string
+      required:
+        - nom
+        - logline
+        - synopsisCourt
+        - genre
+        - cible
+        - budgetTotal
+        - montantRecherche
+        - avancement
+        - societe
+        - siret
+        - region
+
+    GeneratePromptRequest:
+      type: object
+      properties:
+        projectId:
+          type: integer
+        moduleId:
+          type: integer
+        submoduleId:
+          type: string
+        targetPlatform:
+          type: string
+          enum: [meta_ai, roboneo, google_flow, midjourney, runway, gpt5, claude]
+          default: claude
+        scoringThreshold:
+          type: integer
+          minimum: 0
+          maximum: 100
+          default: 85
+        moduleSpecificData:
+          type: object
+          description: Module-specific form data
+      required:
+        - projectId
+        - moduleId
+        - submoduleId
+
+    ScoringDetails:
+      type: object
+      properties:
+        scoreTotal:
+          type: integer
+        completude:
+          type: integer
+        specificite:
+          type: integer
+        precisionReglementaire:
+          type: integer
+        clartéStructure:
+          type: integer
+        fewShotQuality:
+          type: integer
+        controleQualite:
+          type: integer
+        adaptationPlateforme:
+          type: integer
+        weakPoints:
+          type: array
+          items:
+            type: string
+        mention:
+          type: string
+          enum: [insuffisant, bon, excellent, god_tier]
+      required:
+        - scoreTotal
+        - mention
+
+    PromptVariant:
+      type: object
+      properties:
+        style:
+          type: string
+          enum: [expert, creatif, template]
+        content:
+          type: string
+        scoring:
+          $ref: "#/components/schemas/ScoringDetails"
+      required:
+        - style
+        - content
+        - scoring
+
+    GeneratePromptResponse:
+      type: object
+      properties:
+        projectId:
+          type: integer
+        moduleId:
+          type: integer
+        submoduleId:
+          type: string
+        targetPlatform:
+          type: string
+        iterations:
+          type: integer
+        variants:
+          type: array
+          items:
+            $ref: "#/components/schemas/PromptVariant"
+        finalScore:
+          type: integer
+        mention:
+          type: string
+        savedAt:
+          type: string
+      required:
+        - projectId
+        - moduleId
+        - submoduleId
+        - targetPlatform
+        - iterations
+        - variants
+        - finalScore
+        - mention
+        - savedAt
+
+    GeneratedPrompt:
+      type: object
+      properties:
+        id:
+          type: integer
+        projectId:
+          type: integer
+        moduleId:
+          type: integer
+        submoduleId:
+          type: string
+        moduleName:
+          type: string
+        submoduleName:
+          type: string
+        targetPlatform:
+          type: string
+        finalScore:
+          type: integer
+        mention:
+          type: string
+        iterations:
+          type: integer
+        variants:
+          type: array
+          items:
+            $ref: "#/components/schemas/PromptVariant"
+        createdAt:
+          type: string
+        updatedAt:
+          type: string
+      required:
+        - id
+        - projectId
+        - moduleId
+        - submoduleId
+        - moduleName
+        - submoduleName
+        - targetPlatform
+        - finalScore
+        - mention
+        - iterations
+        - variants
+        - createdAt
+        - updatedAt
+
+    Submodule:
+      type: object
+      properties:
+        id:
+          type: string
+        nom:
+          type: string
+        description:
+          type: string
+      required:
+        - id
+        - nom
+        - description
+
+    Module:
+      type: object
+      properties:
+        id:
+          type: integer
+        nom:
+          type: string
+        couleur:
+          type: string
+        icone:
+          type: string
+        description:
+          type: string
+        submodules:
+          type: array
+          items:
+            $ref: "#/components/schemas/Submodule"
+      required:
+        - id
+        - nom
+        - couleur
+        - icone
+        - description
+        - submodules
