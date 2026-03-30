@@ -1,0 +1,107 @@
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=Rajdhani:wght@400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap');
+@import "tailwindcss";
+@import "tw-animate-css";
+@plugin "@tailwindcss/typography";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --font-display: 'Orbitron', sans-serif;
+  --font-body: 'Rajdhani', sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+
+  --color-background: hsl(230 25% 4%);
+  --color-surface: hsl(227 25% 7%);
+  --color-surface-hover: hsl(227 25% 10%);
+  
+  --color-foreground: hsl(214 32% 91%);
+  --color-muted: hsl(214 20% 60%);
+  --color-border: hsl(228 30% 15%);
+  --color-border-glow: hsl(203 100% 50% / 0.3);
+
+  --color-cyan: hsl(203 100% 50%);
+  --color-gold: hsl(51 100% 50%);
+  --color-red: hsl(0 100% 60%);
+  --color-green: hsl(120 100% 50%);
+  --color-purple: hsl(270 100% 60%);
+
+  --animate-pulse-slow: pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  --animate-glitch: glitch 0.2s linear infinite;
+}
+
+:root {
+  --background: 230 25% 4%;
+  --foreground: 214 32% 91%;
+  --card: 227 25% 7%;
+  --card-foreground: 214 32% 91%;
+  --border: 228 30% 15%;
+  --primary: 203 100% 50%;
+  --primary-foreground: 230 25% 4%;
+  --muted: 214 20% 60%;
+  --ring: 203 100% 50%;
+}
+
+@layer base {
+  body {
+    @apply bg-background text-foreground font-body antialiased selection:bg-cyan-500/30 overflow-x-hidden;
+    background-image: 
+      linear-gradient(to right, rgba(0, 240, 255, 0.03) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(0, 240, 255, 0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    background-position: center center;
+    background-attachment: fixed;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-display tracking-wide uppercase;
+  }
+
+  /* Custom scrollbar for tactical HUD feel */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    @apply bg-surface border-l border-border;
+  }
+  ::-webkit-scrollbar-thumb {
+    @apply bg-border hover:bg-cyan-500/50 transition-colors;
+  }
+}
+
+@layer utilities {
+  .clip-corner {
+    clip-path: polygon(0 0, 100% 0, 100% calc(100% - 12px), calc(100% - 12px) 100%, 0 100%);
+  }
+  
+  .clip-corner-sm {
+    clip-path: polygon(0 0, 100% 0, 100% calc(100% - 6px), calc(100% - 6px) 100%, 0 100%);
+  }
+
+  .text-glow-cyan {
+    text-shadow: 0 0 10px rgba(0, 240, 255, 0.5);
+  }
+  
+  .text-glow-gold {
+    text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+  }
+
+  .box-glow-cyan {
+    box-shadow: 0 0 15px rgba(0, 240, 255, 0.15), inset 0 0 20px rgba(0, 240, 255, 0.05);
+  }
+}
+
+/* Base styles for markdown content in the prompt panel */
+.prose {
+  @apply text-foreground font-mono text-sm leading-relaxed;
+}
+.prose h1, .prose h2, .prose h3 {
+  @apply font-display text-cyan mb-4 mt-6 uppercase tracking-wider;
+}
+.prose h1 { @apply text-2xl border-b border-cyan/30 pb-2; }
+.prose h2 { @apply text-xl; }
+.prose p { @apply mb-4; }
+.prose ul { @apply list-disc pl-5 mb-4 text-muted; }
+.prose li { @apply mb-1 marker:text-cyan; }
+.prose strong { @apply text-gold font-bold; }
+.prose blockquote { @apply border-l-2 border-cyan pl-4 text-muted italic my-4 bg-cyan/5 p-2; }

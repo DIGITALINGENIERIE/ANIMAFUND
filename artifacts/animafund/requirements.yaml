@@ -1,0 +1,20 @@
+packages:
+  "framer-motion": "For cinematic slide-outs, stagger animations, and HUD transitions"
+  "react-hook-form": "For complex project state management with arrays"
+  "clsx": "Utility for constructing class names conditionally"
+  "tailwind-merge": "Utility for merging tailwind classes without conflicts"
+  "react-markdown": "To render the generated markdown prompts beautifully"
+  "date-fns": "For formatting timestamps"
+
+images:
+  - path: "artifacts/animafund/public/images/bg-tech-noir.png"
+    description: "Extremely dark cinematic sci-fi background, subtle topographic grid lines, deep space navy blue, military tactical HUD vibe, minimal, almost black"
+    aspect_ratio: "16:9"
+  - path: "artifacts/animafund/public/images/logo.png"
+    description: "Military tactical patch logo, geometric eagle or sharp wings, gold and electric cyan lines on transparent background, flat UI"
+    aspect_ratio: "1:1"
+
+notes:
+  - Expecting @workspace/api-client-react to expose generated hooks (useListProjects, useCreateProject, etc.) and types based on OpenAPI schema
+  - Implementing a dark tech-noir visual theme with electric cyan and gold accents
+  - Using custom hooks to wrap generated hooks for React Query cache invalidation
