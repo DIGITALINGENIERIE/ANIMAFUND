@@ -77050,10 +77050,13 @@ var openai = process.env.AI_INTEGRATIONS_OPENAI_API_KEY ? new OpenAI({
 var CEREBRAS_MODEL = "qwen-3-235b-a22b-instruct-2507";
 var CLAUDE_MODEL = "claude-sonnet-4-5";
 var GPT_MODEL = "gpt-4o";
-var MAX_RETRIES = 3;
-var RETRY_DELAY_MS = 1e3;
+var MAX_RETRIES = 4;
+var RETRY_DELAY_MS = 2e3;
 async function sleep4(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
+}
+function isRateLimitError(error40) {
+  return typeof error40 === "object" && error40 !== null && "status" in error40 && error40.status === 429;
 }
 async function callGenerationLLM(systemPrompt, userPrompt, temperature = 0.7, maxTokens = 4096) {
   for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
@@ -77074,7 +77077,9 @@ async function callGenerationLLM(systemPrompt, userPrompt, temperature = 0.7, ma
     } catch (error40) {
       logger.warn({ error: error40, attempt }, `Cerebras \xE9chou\xE9 (tentative ${attempt}/${MAX_RETRIES})`);
       if (attempt < MAX_RETRIES) {
-        await sleep4(RETRY_DELAY_MS * attempt);
+        const delayMs = isRateLimitError(error40) ? 3e4 * attempt : RETRY_DELAY_MS * attempt;
+        logger.info({ delayMs }, `Attente avant nouvelle tentative Cerebras`);
+        await sleep4(delayMs);
       } else {
         throw error40;
       }
@@ -77310,11 +77315,11 @@ router3.post("/prompts/generate", async (req, res) => {
   };
   const MAX_ITERATIONS = 4;
   const planningContext = await buildPlanningContext(ctx);
-  const [expertResult, creatifResult, templateResult] = await Promise.all([
-    generateAndScoreVariant(ctx, "expert", MAX_ITERATIONS, scoringThreshold, planningContext),
-    generateAndScoreVariant(ctx, "creatif", MAX_ITERATIONS, scoringThreshold, planningContext),
-    generateAndScoreVariant(ctx, "template", MAX_ITERATIONS, scoringThreshold, planningContext)
-  ]);
+  const expertResult = await generateAndScoreVariant(ctx, "expert", MAX_ITERATIONS, scoringThreshold, planningContext);
+  await new Promise((r2) => setTimeout(r2, 3e3));
+  const creatifResult = await generateAndScoreVariant(ctx, "creatif", MAX_ITERATIONS, scoringThreshold, planningContext);
+  await new Promise((r2) => setTimeout(r2, 3e3));
+  const templateResult = await generateAndScoreVariant(ctx, "template", MAX_ITERATIONS, scoringThreshold, planningContext);
   const variants = [
     { style: "expert", content: expertResult.content, scoring: expertResult.scoring },
     { style: "creatif", content: creatifResult.content, scoring: creatifResult.scoring },

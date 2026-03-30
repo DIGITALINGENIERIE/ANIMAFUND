@@ -197,11 +197,12 @@ router.post("/prompts/generate", async (req: Request, res: Response) => {
   // Étape 0 : Chain-of-Thought — analyse stratégique du projet avant génération
   const planningContext = await buildPlanningContext(ctx);
 
-  const [expertResult, creatifResult, templateResult] = await Promise.all([
-    generateAndScoreVariant(ctx, "expert", MAX_ITERATIONS, scoringThreshold, planningContext),
-    generateAndScoreVariant(ctx, "creatif", MAX_ITERATIONS, scoringThreshold, planningContext),
-    generateAndScoreVariant(ctx, "template", MAX_ITERATIONS, scoringThreshold, planningContext),
-  ]);
+  // Variantes séquentielles pour éviter les rate limits Cerebras (429)
+  const expertResult = await generateAndScoreVariant(ctx, "expert", MAX_ITERATIONS, scoringThreshold, planningContext);
+  await new Promise((r) => setTimeout(r, 3000));
+  const creatifResult = await generateAndScoreVariant(ctx, "creatif", MAX_ITERATIONS, scoringThreshold, planningContext);
+  await new Promise((r) => setTimeout(r, 3000));
+  const templateResult = await generateAndScoreVariant(ctx, "template", MAX_ITERATIONS, scoringThreshold, planningContext);
 
   const variants = [
     { style: "expert", content: expertResult.content, scoring: expertResult.scoring },

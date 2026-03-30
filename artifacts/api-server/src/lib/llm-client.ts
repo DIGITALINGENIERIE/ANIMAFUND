@@ -29,11 +29,20 @@ const CEREBRAS_MODEL = "qwen-3-235b-a22b-instruct-2507";
 const CLAUDE_MODEL = "claude-sonnet-4-5";
 const GPT_MODEL = "gpt-4o";
 
-const MAX_RETRIES = 3;
-const RETRY_DELAY_MS = 1000;
+const MAX_RETRIES = 4;
+const RETRY_DELAY_MS = 2000;
 
 async function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+function isRateLimitError(error: unknown): boolean {
+  return (
+    typeof error === "object" &&
+    error !== null &&
+    "status" in error &&
+    (error as { status: number }).status === 429
+  );
 }
 
 // ─── Génération initiale via Cerebras (ultra-rapide) ─────────────────────────
@@ -63,7 +72,10 @@ export async function callGenerationLLM(
     } catch (error) {
       logger.warn({ error, attempt }, `Cerebras échoué (tentative ${attempt}/${MAX_RETRIES})`);
       if (attempt < MAX_RETRIES) {
-        await sleep(RETRY_DELAY_MS * attempt);
+        // Rate limit (429) : attente longue avec backoff exponentiel (30s, 60s, 90s)
+        const delayMs = isRateLimitError(error) ? 30000 * attempt : RETRY_DELAY_MS * attempt;
+        logger.info({ delayMs }, `Attente avant nouvelle tentative Cerebras`);
+        await sleep(delayMs);
       } else {
         throw error;
       }
