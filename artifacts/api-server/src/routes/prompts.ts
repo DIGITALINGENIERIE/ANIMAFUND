@@ -12,7 +12,7 @@ import {
   buildImprovementPrompt,
   type PromptContext,
 } from "../lib/prompt-templates";
-import { callLLM, scorePrompt, type ScoringResult } from "../lib/llm-client";
+import { callGenerationLLM, callImprovementLLM, scorePrompt, type ScoringResult } from "../lib/llm-client";
 
 const router: IRouter = Router();
 
@@ -38,7 +38,13 @@ async function generateAndScoreVariant(
 
   for (let i = 0; i < maxIterations; i++) {
     iterations++;
-    content = await callLLM(GOD_TIER_SYSTEM, promptInstructions, 0.75, 6000);
+    // Première itération : Cerebras (ultra-rapide)
+    // Itérations suivantes : Claude ou GPT (meilleure qualité d'amélioration)
+    const isImprovement = i > 0;
+    content = isImprovement
+      ? await callImprovementLLM(GOD_TIER_SYSTEM, promptInstructions, 0.7, 6000)
+      : await callGenerationLLM(GOD_TIER_SYSTEM, promptInstructions, 0.75, 6000);
+
     const scoringInstruction = buildScoringPrompt(content, style);
     scoring = await scorePrompt(content, scoringInstruction);
 

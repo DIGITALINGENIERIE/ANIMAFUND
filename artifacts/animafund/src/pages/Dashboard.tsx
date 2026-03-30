@@ -36,6 +36,9 @@ export default function Dashboard() {
 
   const currentProject = projects.find(p => p.id === currentProjectId);
 
+  // Calcul dynamique du total de sous-modules depuis les données réelles
+  const totalSubmodules = modules.reduce((sum, m) => sum + (m.submodules?.length ?? 0), 0);
+
   // Actions
   const handleProjectSelect = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const val = e.target.value;
@@ -54,7 +57,6 @@ export default function Dashboard() {
 
   const handleGeneratePrompt = (moduleId: number, submoduleId: string) => {
     if (!currentProjectId) {
-      alert("Veuillez sélectionner ou créer un projet d'abord.");
       setIsSidebarOpen(true);
       return;
     }
@@ -238,10 +240,10 @@ export default function Dashboard() {
                   <div className="w-48 h-2 bg-surface border border-border relative overflow-hidden">
                     <div 
                       className="absolute top-0 left-0 h-full bg-cyan transition-all duration-1000"
-                      style={{ width: `${Math.min(100, (projectPrompts.length / 67) * 100)}%` }} // Approximating 67 total submodules
+                      style={{ width: `${totalSubmodules > 0 ? Math.min(100, (projectPrompts.length / totalSubmodules) * 100) : 0}%` }}
                     />
                   </div>
-                  <span className="font-mono text-xs text-foreground">{projectPrompts.length}/67</span>
+                  <span className="font-mono text-xs text-foreground">{projectPrompts.length}/{totalSubmodules}</span>
                 </div>
               </div>
             )}

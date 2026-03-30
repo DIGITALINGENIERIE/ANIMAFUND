@@ -11,12 +11,14 @@
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.80.0",
+    "@cerebras/cerebras_cloud_sdk": "^1.64.1",
     "@workspace/api-zod": "workspace:*",
     "@workspace/db": "workspace:*",
     "cookie-parser": "^1.4.7",
     "cors": "^2",
     "drizzle-orm": "catalog:",
     "express": "^5",
+    "openai": "^6.33.0",
     "pino": "^9",
     "pino-http": "^10",
     "zod": "catalog:"

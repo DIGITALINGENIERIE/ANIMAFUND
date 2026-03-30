@@ -125,7 +125,7 @@ export function ModuleCard({ module, projectPrompts, onGenerateModule, onViewPro
           className="w-full text-xs"
           onClick={() => onGenerateModule(module.id)}
         >
-          {isComplete ? 'RE-GÉNÉRER TOUT LE MODULE' : 'GÉNÉRER LE MODULE COMPLET'}
+          {isComplete ? 'RE-GÉNÉRER LE PREMIER SOUS-MODULE' : 'GÉNÉRER LE PROCHAIN SOUS-MODULE'}
         </TechButton>
       </div>
 
