@@ -153,11 +153,8 @@ export default function Dashboard() {
       <div className="flex-1 flex overflow-hidden relative z-10">
         
         {/* Left Sidebar (Configuration & Project) */}
-        <motion.aside
-          initial={false}
-          animate={{ width: isSidebarOpen ? 450 : 0, opacity: isSidebarOpen ? 1 : 0 }}
-          transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-          className="bg-surface border-r border-border shrink-0 flex flex-col h-full overflow-hidden"
+        <aside
+          className={`bg-surface border-r border-border shrink-0 flex flex-col h-full overflow-hidden transition-all duration-300 ease-in-out ${isSidebarOpen ? 'w-[450px] opacity-100' : 'w-0 opacity-0'}`}
         >
           <div className="p-6 overflow-y-auto h-full space-y-8 w-[450px]">
             
@@ -210,7 +207,7 @@ export default function Dashboard() {
             </div>
 
           </div>
-        </motion.aside>
+        </aside>
 
         {/* Main Grid Area */}
         <main className="flex-1 overflow-y-auto p-6 md:p-8 relative">

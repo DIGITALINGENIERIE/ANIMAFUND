@@ -62823,229 +62823,458 @@ function getSubmodule(moduleId, submoduleId) {
 
 // src/lib/prompt-templates.ts
 var PLATFORM_INSTRUCTIONS = {
-  meta_ai: "Meta.ai (Llama 4) - Optimise pour un modele conversationnel ouvert. Utilise des instructions claires et directes.",
-  roboneo: "Roboneo - Plateforme IA specialisee medias. Privilege les structures JSON-ready et les balises semantiques.",
-  google_flow: "Google Flow Studio - Optimise pour la generation multimodale. Integre des descriptions visuelles precises.",
-  midjourney: "Midjourney - Specialise generation d'images. Inclus des parametres de style --ar, --style, --v6.",
-  runway: "Runway Gen-3 - Generation video IA. Inclus directives de mouvement, camera, et duree.",
-  gpt5: "GPT-5 - Modele OpenAI dernier generation. Exploite les capacites de raisonnement avance et structured outputs.",
-  claude: "Claude (Anthropic) - Excellence analytique et rigueur documentaire. Privilege les instructions XML tags et la structure hierarchique."
+  meta_ai: `Meta.ai (Llama 4) \u2014 Mod\xE8le conversationnel ouvert.
+FORMAT : Instructions directes et hi\xE9rarchis\xE9es. Pr\xE9f\xE8re les listes structur\xE9es avec num\xE9rotation explicite.
+STYLE : Ton assertif, formulations en mode imp\xE9ratif pour les sections d'action.
+OPTIMISATION : S\xE9pare clairement le contexte des instructions avec des d\xE9limiteurs ===.`,
+  roboneo: `Roboneo \u2014 Plateforme IA sp\xE9cialis\xE9e m\xE9dias.
+FORMAT : Structure JSON-ready avec balises s\xE9mantiques <section>, <data>, <instruction>.
+STYLE : Cl\xE9s descriptives en snake_case pour les donn\xE9es, contenu narratif pour les instructions.
+OPTIMISATION : Chaque section doit \xEAtre extractable ind\xE9pendamment.`,
+  google_flow: `Google Flow Studio \u2014 G\xE9n\xE9ration multimodale.
+FORMAT : Inclut des balises [VISUAL_DESCRIPTION], [AUDIO_CUE], [ANIMATION_DIRECTIVE] l\xE0 o\xF9 pertinent.
+STYLE : Descriptions visuelles ultra-pr\xE9cises (palette Pantone, style artistique r\xE9f\xE9renc\xE9).
+OPTIMISATION : Structure adapt\xE9e au parsing multimodal, avec m\xE9tadonn\xE9es de g\xE9n\xE9ration.`,
+  midjourney: `Midjourney v6 \u2014 G\xE9n\xE9ration d'images IA.
+FORMAT : Param\xE8tres de style \xE0 la fin : --ar [ratio] --style [style] --v 6 --q 2
+STYLE : Descriptions visuelles denses, r\xE9f\xE9rences artistiques pr\xE9cises, termes techniques photo/cin\xE9ma.
+OPTIMISATION : \xC9vite les abstractions \u2014 d\xE9crit ce qui DOIT \xEAtre visible concr\xE8tement.`,
+  runway: `Runway Gen-3 Alpha \u2014 G\xE9n\xE9ration vid\xE9o IA.
+FORMAT : Structure : [SC\xC8NE] > [MOUVEMENT CAM\xC9RA] > [ACTION] > [DUR\xC9E] > [AMBIANCE]
+STYLE : Directives de mouvement pr\xE9cises (dolly in/out, tracking shot, etc.), description temporelle.
+OPTIMISATION : Limites 10 secondes par clip \u2014 d\xE9coupe narrative adapt\xE9e.`,
+  gpt5: `GPT-5 (OpenAI) \u2014 Raisonnement avanc\xE9 et structured outputs.
+FORMAT : Utilise les XML tags pour structurer : <context>, <task>, <constraints>, <output_format>
+STYLE : Instructions de raisonnement explicites ("Raisonne \xE9tape par \xE9tape avant de r\xE9pondre").
+OPTIMISATION : Exploite les structured outputs JSON schema pour les donn\xE9es chiffr\xE9es.`,
+  claude: `Claude (Anthropic) \u2014 Excellence analytique et rigueur documentaire.
+FORMAT : XML tags hi\xE9rarchiques : <document>, <section name="">, <data>, <instruction>, <example>
+STYLE : Registre institutionnel, instructions en bullet points exhaustifs, exemples few-shot int\xE9gr\xE9s.
+OPTIMISATION : S\xE9quence optimale \u2014 contexte \u2192 instructions \u2192 contraintes \u2192 format de sortie.`
 };
 var GENRE_LABELS = {
-  animation_2d: "Animation 2D",
-  animation_3d: "Animation 3D",
-  jeu_video: "Jeu Vid\xE9o",
-  hybride: "Projet Hybride (Animation + JV)"
+  animation_2d: "Animation 2D (s\xE9rie ou long m\xE9trage)",
+  animation_3d: "Animation 3D (s\xE9rie ou long m\xE9trage)",
+  jeu_video: "Jeu Vid\xE9o (PC/console/mobile)",
+  hybride: "Projet Hybride (Animation + Jeu Vid\xE9o transm\xE9dia)"
 };
 var AVANCEMENT_LABELS = {
-  idee: "Stade Id\xE9e",
-  ecriture: "En \xE9criture",
-  concept_art: "Concept Art en cours",
-  prototype: "Prototype disponible",
-  demo: "D\xE9mo jouable / pilote anim\xE9"
+  idee: "Stade Id\xE9e \u2014 Pas de document produit",
+  ecriture: "En \xE9criture \u2014 Sc\xE9nario/sc\xE8nes en d\xE9veloppement",
+  concept_art: "Concept Art en cours \u2014 Direction artistique d\xE9finie",
+  prototype: "Prototype disponible \u2014 Version jouable/pilote anim\xE9 interne",
+  demo: "D\xE9mo jouable / Pilote anim\xE9 \u2014 Mat\xE9riel de pr\xE9sentation pr\xEAt"
 };
 function buildProjectContext(ctx) {
   const { project } = ctx;
-  const equipeStr = project.equipe?.length ? project.equipe.map((e2) => `${e2.nom} (${e2.role}): ${e2.bioCourte}`).join("; ") : "\xC0 compl\xE9ter";
-  const refStr = project.references?.length ? project.references.join(", ") : "\xC0 pr\xE9ciser";
-  const tonStr = project.ton?.length ? project.ton.join(", ") : "\xC0 d\xE9finir";
-  return `**PROJET : ${project.nom}**
-- Soci\xE9t\xE9 : ${project.societe} | SIRET: ${project.siret} | R\xE9gion: ${project.region}
-- Genre : ${GENRE_LABELS[project.genre] || project.genre}
-- Logline : ${project.logline}
-- Synopsis : ${project.synopsisCourt}
-- Cible : ${project.cible}
-- Ton : ${tonStr}
-- R\xE9f\xE9rences artistiques : ${refStr}
-- \xC9quipe cl\xE9 : ${equipeStr}
-- Budget total : ${Number(project.budgetTotal).toLocaleString("fr-FR")} \u20AC
-- Montant recherch\xE9 : ${Number(project.montantRecherche).toLocaleString("fr-FR")} \u20AC
-- Avancement : ${AVANCEMENT_LABELS[project.avancement] || project.avancement}`;
+  const equipeStr = project.equipe?.length ? project.equipe.map((e2) => `**${e2.nom}** (${e2.role}) \u2014 ${e2.bioCourte}`).join("\n  ") : "[\xC0 COMPL\xC9TER \u2014 liste les membres cl\xE9s avec leurs r\xF4les et exp\xE9riences]";
+  const refStr = project.references?.length ? project.references.join(", ") : "[\xC0 COMPL\xC9TER \u2014 r\xE9f\xE9rences artistiques et commerciales du projet]";
+  const tonStr = project.ton?.length ? project.ton.join(", ") : "[\xC0 COMPL\xC9TER \u2014 registre tonique du projet]";
+  const budgetTotal = Number(project.budgetTotal);
+  const montantRecherche = Number(project.montantRecherche);
+  const ratioFinancement = budgetTotal > 0 ? `(soit ${Math.round(montantRecherche / budgetTotal * 100)}% du budget total)` : "";
+  return `### FICHE PROJET \u2014 "${project.nom}"
+
+| Champ | Valeur |
+|-------|--------|
+| **Soci\xE9t\xE9** | ${project.societe || "[\xC0 COMPL\xC9TER]"} |
+| **SIRET** | ${project.siret || "[\xC0 COMPL\xC9TER]"} |
+| **R\xE9gion** | ${project.region || "[\xC0 COMPL\xC9TER]"} |
+| **Genre** | ${GENRE_LABELS[project.genre] || project.genre} |
+| **Cible** | ${project.cible || "[\xC0 COMPL\xC9TER]"} |
+| **Avancement** | ${AVANCEMENT_LABELS[project.avancement] || project.avancement} |
+| **Budget total** | ${budgetTotal > 0 ? budgetTotal.toLocaleString("fr-FR") + " \u20AC" : "[\xC0 COMPL\xC9TER]"} |
+| **Montant recherch\xE9** | ${montantRecherche > 0 ? montantRecherche.toLocaleString("fr-FR") + " \u20AC " + ratioFinancement : "[\xC0 COMPL\xC9TER]"} |
+
+**LOGLINE :** ${project.logline || "[\xC0 COMPL\xC9TER \u2014 phrase d'accroche synth\xE9tisant le projet en 1-2 lignes]"}
+
+**SYNOPSIS COURT :**
+${project.synopsisCourt || "[\xC0 COMPL\xC9TER \u2014 r\xE9sum\xE9 de 200-400 mots pr\xE9sentant l'univers, les enjeux et l'originalit\xE9]"}
+
+**TON & REGISTRE :** ${tonStr}
+
+**R\xC9F\xC9RENCES ARTISTIQUES/COMMERCIALES :** ${refStr}
+
+**\xC9QUIPE CL\xC9 :**
+  ${equipeStr}`;
 }
-function buildExpertPrompt(ctx) {
+function buildExpertPrompt(ctx, planningContext = "") {
   const projectCtx = buildProjectContext(ctx);
   const platformInstr = PLATFORM_INSTRUCTIONS[ctx.targetPlatform] || PLATFORM_INSTRUCTIONS.claude;
-  return `# PROMPT GOD TIER \u2014 ${ctx.moduleName} \u2014 ${ctx.submoduleName}
-## STYLE : EXPERT / FORMEL
+  return `# MISSION GOD TIER \u2014 ${ctx.moduleName.toUpperCase()}
+# DOCUMENT : ${ctx.submoduleName.toUpperCase()} \u2014 STYLE EXPERT INSTITUTIONNEL
 
-## 1. R\xD4LE & CONTEXTE
-Tu es un expert consultant senior en financement et d\xE9veloppement de projets ${ctx.project.genre.includes("jeu") ? "jeu vid\xE9o" : "d'animation"}, avec 15+ ann\xE9es d'exp\xE9rience. Tu as accompagn\xE9 plus de 200 dossiers aupr\xE8s du CNC, des r\xE9gions, d'investisseurs priv\xE9s et de fonds europ\xE9ens (Europe Creative, Eurimages). Ton taux d'obtention de financement d\xE9passe 78%. Tu ma\xEEtrises parfaitement les normes CNC 2024, les grilles FJV, et les standards internationaux de pitch.
+---
 
-## 2. CONTEXTE PROJET COMPLET
+## SECTION A \u2014 PROFIL & AUTORIT\xC9 DE L'EXPERT
+
+Tu incarnes un consultant senior sp\xE9cialis\xE9 en financement de projets cr\xE9atifs, avec 20 ans d'exp\xE9rience dans l'industrie audiovisuelle et du jeu vid\xE9o fran\xE7aise. Tu as :
+- Accompagn\xE9 300+ dossiers aupr\xE8s du CNC (taux d'obtention 82%), de r\xE9gions, de fonds europ\xE9ens
+- Si\xE9g\xE9 dans des commissions de s\xE9lection CNC pendant 6 ans
+- Publi\xE9 dans la revue sp\xE9cialis\xE9e "\xC9cran Total" et "Ludovision"
+- Form\xE9 des porteurs de projets \xE0 Sciences Po Paris et \xE0 l'ENSAD
+
+Tu connais par c\u0153ur :
+- Le **d\xE9cret n\xB02021-1240 du 24 septembre 2021** relatif au soutien automatique \xE0 la production d'\u0153uvres cin\xE9matographiques
+- Les **r\xE8glements FJV 2024** (Fonds Jeux Vid\xE9o, budget annuel 10M\u20AC, crit\xE8res culturels et \xE9conomiques)
+- Les **appels \xE0 projets Europe Creative MEDIA 2024** (d\xE9veloppement, production, distribution)
+- Les **grilles tarifaires FICAM 2024** pour les budgets d'animation
+- Les **taux d'aide COSIP** selon les types de commandes (hertzien, c\xE2ble, \xE0 la demande)
+
+---
+
+## SECTION B \u2014 CONTEXTE PROJET COMPLET
+
 ${projectCtx}
 
-## 3. MISSION SP\xC9CIFIQUE \u2014 ${ctx.submoduleName}
-${ctx.submoduleDescription}
+---
+${planningContext ? `
+## SECTION C \u2014 ANALYSE STRAT\xC9GIQUE PR\xC9-G\xC9N\xC9R\xC9 (Chain-of-Thought)
+${planningContext}
+
+---
+` : ""}
+
+## SECTION ${planningContext ? "D" : "C"} \u2014 MISSION SP\xC9CIFIQUE
+
+**Module :** ${ctx.moduleName}
+**Document \xE0 produire :** ${ctx.submoduleName}
+**Description de la mission :** ${ctx.submoduleDescription}
 ${ctx.moduleSpecificData ? `
-**Donn\xE9es sp\xE9cifiques au module :**
-${JSON.stringify(ctx.moduleSpecificData, null, 2)}` : ""}
+**Donn\xE9es compl\xE9mentaires fournies :**
+\`\`\`json
+${JSON.stringify(ctx.moduleSpecificData, null, 2)}
+\`\`\`` : ""}
 
-## 4. OBJECTIF PRINCIPAL
-Produire un document "${ctx.submoduleName}" de niveau professionnel qui permet d'obtenir le financement ou l'agr\xE9ment cibl\xE9. Ce document sera pr\xE9sent\xE9 devant une commission d'experts du secteur audiovisuel/jeu vid\xE9o, des investisseurs institutionnels ou des jur\xE9s de festival. Il doit convaincre de la viabilit\xE9 artistique ET \xE9conomique du projet.
+---
 
-## 5. CONTRAINTES & FORMAT
-- Format : Document structur\xE9 en sections claires, avec titres num\xE9rot\xE9s
-- Langue : Fran\xE7ais professionnel, registre institutionnel
-- Longueur : Entre 8 et 15 pages \xE9quivalent selon la complexit\xE9
-- Normes : Conforme aux grilles CNC 2024 / FJV 2024 / Europe Creative 2024
-- Obligatoire : Absence totale d'hallucination \u2014 toute donn\xE9e manquante doit \xEAtre signal\xE9e [\xC0 COMPL\xC9TER]
+## SECTION ${planningContext ? "E" : "D"} \u2014 OBJECTIF DE QUALIT\xC9 ABSOLUE
 
-## 6. STRUCTURE OBLIGATOIRE
-1. Page de garde avec informations administratives compl\xE8tes
-2. Pr\xE9sentation du projet et de la soci\xE9t\xE9
-3. ${ctx.submoduleName} \u2014 Corps principal du document
-4. Justifications et arguments de financement
-5. Perspectives et plan de valorisation
-6. Annexes et documents justificatifs
-7. Attestations et signatures
+Ce document sera lu par des experts sectoriels exigeants. Il doit :
+1. **Convaincre techniquement** : tout chiffre est sourc\xE9, tout argument est \xE9tay\xE9
+2. **Prouver la viabilit\xE9** : artistique ET \xE9conomique ET r\xE9glementaire simultan\xE9ment
+3. **Anticiper les objections** : les points faibles sont mentionn\xE9s ET contrebalanc\xE9s
+4. **Respecter la grammaire institutionnelle** : formulations en mode indicatif assertif, vocabulaire du secteur
 
-## 7. STYLE & TON
-Expert et institutionnel : vocabulaire sectoriel pr\xE9cis, formulations en mode indicatif assertif ("le projet pr\xE9sente", "la soci\xE9t\xE9 dispose de"), donn\xE9es chiffr\xE9es syst\xE9matiquement cit\xE9es avec leur source, structure logique et persuasive.
+---
 
-## 8. EXEMPLES DE R\xC9F\xC9RENCE (few-shot)
-Pour un dossier CNC similaire r\xE9ussi : "L'\xE9quipe fondatrice cumule 45 ann\xE9es d'exp\xE9rience combin\xE9e dans la production d'animation fran\xE7aise, avec 12 titres produits g\xE9n\xE9rant un CA cumul\xE9 de 8,2M\u20AC..."
-Pour une bible artistique prim\xE9e : "L'univers graphique s'inspire du r\xE9alisme magique de Miyazaki et de l'expressionnisme de Bill Plympton, transpos\xE9 dans un trait 2D vectoriel haute pr\xE9cision..."
+## SECTION ${planningContext ? "F" : "E"} \u2014 CONTRAINTES IMP\xC9RATIVES DE PRODUCTION
 
-## 9. INSTRUCTIONS DE QUALIT\xC9 ABSOLUE
-- Z\xE9ro hallucination : Utilisez UNIQUEMENT les donn\xE9es fournies dans le contexte. Si une donn\xE9e est absente, indiquez [\xC0 COMPL\xC9TER PAR LE PORTEUR] et expliquez pourquoi elle est critique.
-- Coh\xE9rence narrative : Chaque section doit renforcer la m\xEAme vision du projet.
-- Ancrage r\xE9glementaire : Citez les textes de r\xE9f\xE9rence (d\xE9cret CNC, r\xE8glement FJV, cahier des charges Europe Creative) avec leurs num\xE9ros de version.
-- Anti-g\xE9n\xE9ricit\xE9 : Chaque phrase doit contenir au moins un \xE9l\xE9ment propre au projet "${ctx.project.nom}".
-- Plateforme cible : ${platformInstr}
+### FORMAT
+- Document structur\xE9 avec num\xE9rotation hi\xE9rarchique (1. / 1.1 / 1.1.1)
+- Tableaux pour toutes les donn\xE9es chiffr\xE9es
+- Notes de bas de section pour les r\xE9f\xE9rences r\xE9glementaires
+- Longueur : 10 \xE0 20 pages \xE9quivalent (dense, pas dilu\xE9)
 
-G\xE9n\xE8re maintenant le document complet pour le module "${ctx.submoduleName}" du projet "${ctx.project.nom}".`;
-}
-function buildCreatifPrompt(ctx) {
-  const projectCtx = buildProjectContext(ctx);
-  const platformInstr = PLATFORM_INSTRUCTIONS[ctx.targetPlatform] || PLATFORM_INSTRUCTIONS.claude;
-  return `# PROMPT GOD TIER \u2014 ${ctx.moduleName} \u2014 ${ctx.submoduleName}
-## STYLE : CR\xC9ATIF / INCISIF
+### LANGUE & STYLE
+- Fran\xE7ais institutionnel : indicatif pr\xE9sent assertif ("le projet dispose de", "la soci\xE9t\xE9 pr\xE9sente")
+- Z\xE9ro conditionnel vague ("pourrait", "envisage de") sauf pour les projections financi\xE8res avec base justifi\xE9e
+- Chiffres toujours contextualis\xE9s : "250k\u20AC de masse salariale, soit 31% du budget \u2014 coh\xE9rent avec les standards FICAM pour ce type de production"
 
-## 1. PROFIL DE L'EXPERT
-Tu es un storyteller de l'industrie cr\xE9ative \u2014 tu as pitch\xE9 \xE0 Sundance, vendu des formats \xE0 Netflix Europe, remport\xE9 l'Ours d'Or de Berlin. Tu sais que derri\xE8re chaque dossier se cache une histoire. Ton arme : transformer des chiffres en r\xE9cit, des CV en l\xE9gendes, des budgets en promesses. Tu rends les commissions accros \xE0 tes dossiers.
+### R\xC9GLEMENTAIRE
+- Citer les textes avec num\xE9ro + date + article pr\xE9cis si applicable
+- Signaler les obligations (\u26A0\uFE0F OBLIGATOIRE), les bonnes pratiques (\u2713 RECOMMAND\xC9) et les optionnels (\u25CB OPTIONNEL)
+- Toute donn\xE9e manquante = [\xC0 COMPL\xC9TER \u2014 explication de pourquoi c'est critique et quels documents apporter]
 
-## 2. L'HISTOIRE \xC0 RACONTER
-${projectCtx}
+### ANTI-HALLUCINATION ABSOLUE
+- N'invente AUCUN chiffre, nom de personne, structure, ou r\xE9f\xE9rence non fournie
+- Si une donn\xE9e est absente : [\xC0 COMPL\xC9TER \u2014 ex: "Attestation comptable sur les fonds propres de la soci\xE9t\xE9"]
+- Les exemples few-shot peuvent inclure des r\xE9f\xE9rences \xE0 des projets r\xE9els bien connus du secteur
 
-## 3. CE QUE TU DOIS ACCOMPLIR \u2014 ${ctx.submoduleName}
-${ctx.submoduleDescription}
-Mission : R\xE9diger un "${ctx.submoduleName}" qui ne se lit pas \u2014 qui se d\xE9vore. Qui fait que les membres du jury se penchent en avant. Qui fait qu'un investisseur appelle le lendemain.
-${ctx.moduleSpecificData ? `
-**Contexte additionnel :** ${JSON.stringify(ctx.moduleSpecificData, null, 2)}` : ""}
+---
 
-## 4. LA R\xC8GLE D'OR
-Chaque paragraphe doit r\xE9pondre \xE0 : "Et alors ? Pourquoi je m'en fous pas ?" \u2014 Si la r\xE9ponse n'est pas \xE9vidente, r\xE9cris.
+## SECTION ${planningContext ? "G" : "F"} \u2014 STRUCTURE OBLIGATOIRE DU DOCUMENT
 
-## 5. FORMAT & CONTRAINTES
-- Ouvre avec un accroche percutante (1-2 phrases max)
-- Alterne donn\xE9es factuelles ET narration \xE9motionnelle
-- Cite les references artistiques de fa\xE7on non-na\xEFve ("L\xE0 o\xF9 Spider-Man: Into the Spider-Verse a bris\xE9 les codes visuels, ${ctx.project.nom} fracture les codes narratifs")
-- Termine par un appel \xE0 l'action implicite et m\xE9morable
-- Longueur : Dense mais pas soporifique \u2014 6-10 pages maximum
-- Z\xE9ro jargon incompr\xE9hensible pour un non-initi\xE9 cultiv\xE9
+### 1. PAGE DE GARDE & INFORMATIONS ADMINISTRATIVES
+Tous les champs obligatoires CNC/FJV/Europe Creative selon l'organisme cible.
 
-## 6. STRUCTURE (flexible mais respect\xE9e)
-1. L'accroche \u2014 La phrase qui tue
-2. Le monde sans ce projet (le probl\xE8me / l'opportunit\xE9 manqu\xE9e)
-3. Le projet comme r\xE9ponse unique et in\xE9vitable
-4. Les preuves que \xE7a marche (\xE9quipe + r\xE9f\xE9rences + avancement)
-5. Le mod\xE8le \u2014 Comment \xE7a rapporte, \xE0 qui, quand
-6. La demande \u2014 Nette, justifi\xE9e, irr\xE9sistible
-7. La signature \u2014 Ce qui reste dans la t\xEAte
+### 2. PR\xC9SENTATION DE LA SOCI\xC9T\xC9 PRODUCTRICE
+Forme juridique, capital, historique, r\xE9f\xE9rences de production, certifications.
 
-## 7. TON & STYLE
-Incisif mais jamais vulgaire. Audacieux mais jamais arrogant. Le ton d'un cr\xE9ateur qui sait que son projet est une n\xE9cessit\xE9 culturelle \u2014 pas une demande d'aum\xF4ne. Phrases courtes. Rythme. Impact.
+### 3. ${ctx.submoduleName.toUpperCase()} \u2014 CORPS PRINCIPAL
+D\xE9veloppement complet selon les sp\xE9cificit\xE9s de ce document (${ctx.submoduleDescription}).
 
-## 8. ANTI-PATTERNS \xC0 \xC9VITER ABSOLUMENT
-- "Notre \xE9quipe passionn\xE9e..." \u274C
-- "Projet innovant et original..." \u274C
-- "Le march\xE9 est en pleine croissance..." \u274C
-- Chiffres sans contexte ("10M\u20AC de CA" sans dire "c'est 3x le budget d'un long m\xE9trage CNC standard") \u274C
+### 4. ARGUMENTATION DE FINANCEMENT
+Triple argument : artistique + \xE9conomique + strat\xE9gique pour le secteur.
 
-## 9. CALIBRAGE PLATEFORME
+### 5. PLAN DE VALORISATION
+Distribution, exploitation secondaire, internationalisation.
+
+### 6. ANNEXES REQUISES
+Liste pr\xE9cise des pi\xE8ces justificatives avec formats et d\xE9lais.
+
+### 7. ATTESTATIONS & SIGNATURES
+D\xE9clarations l\xE9gales requises par l'organisme.
+
+---
+
+## SECTION ${planningContext ? "H" : "G"} \u2014 PARAM\xC8TRES PLATEFORME CIBLE
+
+**Plateforme s\xE9lectionn\xE9e :** ${ctx.targetPlatform.toUpperCase()}
 ${platformInstr}
-Adapte le format de sortie pour maximiser l'impact sur cette plateforme sp\xE9cifique.
 
-Lance-toi. "${ctx.project.nom}" m\xE9rite mieux que la m\xE9diocrit\xE9. Fais-en un chef-d'\u0153uvre de persuasion.`;
+---
+
+## G\xC9N\xC8RE MAINTENANT
+
+Produis le document complet "${ctx.submoduleName}" pour le projet "${ctx.project.nom}".
+Commence directement par le contenu \u2014 pas de pr\xE9ambule, pas de commentaire m\xE9ta.
+Chaque ligne doit gagner sa place dans le document.`;
 }
-function buildTemplatePrompt(ctx) {
+function buildCreatifPrompt(ctx, planningContext = "") {
   const projectCtx = buildProjectContext(ctx);
   const platformInstr = PLATFORM_INSTRUCTIONS[ctx.targetPlatform] || PLATFORM_INSTRUCTIONS.claude;
-  return `# PROMPT GOD TIER \u2014 ${ctx.moduleName} \u2014 ${ctx.submoduleName}
-## STYLE : STRUCTUR\xC9 / TEMPLATE OP\xC9RATIONNEL
+  return `# MISSION GOD TIER \u2014 ${ctx.moduleName.toUpperCase()}
+# DOCUMENT : ${ctx.submoduleName.toUpperCase()} \u2014 STYLE NARRATIF / PITCH POWER
 
-## 1. CONTEXTE D'UTILISATION
-Tu vas g\xE9n\xE9rer un template op\xE9rationnel \xE0 remplir pour le module "${ctx.submoduleName}". Ce template doit \xEAtre suffisamment pr\xE9cis pour guider un porteur de projet, et suffisamment flexible pour s'adapter \xE0 diff\xE9rentes situations. Les [BRACKETS] indiquent les zones \xE0 personnaliser.
+---
 
-## 2. DONN\xC9ES DU PROJET INJECT\xC9ES
+## PROFIL CR\xC9ATEUR
+
+Tu es un storyteller de l'industrie cr\xE9ative qui a :
+- Vendu des formats \xE0 Netflix Europe, Canal+, Arte
+- Pitch\xE9 \xE0 Sundance, Tribeca, MIFA Annecy, GDC San Francisco
+- Remport\xE9 des financements CNC pour 15 premiers films / premiers jeux
+- Co-\xE9crit avec des r\xE9alisateurs prim\xE9s aux C\xE9sar
+
+Ton superpouvoir : transformer un dossier administratif en **r\xE9cit irr\xE9sistible**. Tu sais que la commission CNC re\xE7oit 400 dossiers \u2014 le tien doit \xEAtre le seul dont ils parlent le lendemain.
+
+---
+
+## CONTEXTE PROJET
+
 ${projectCtx}
 
-## 3. MODULE CIBLE
-**${ctx.moduleName}** > **${ctx.submoduleName}**
+---
+${planningContext ? `
+## ANALYSE STRAT\xC9GIQUE (CoT)
+${planningContext}
+
+---
+` : ""}
+
+## MISSION : ${ctx.submoduleName}
+
+${ctx.submoduleDescription}
+
+**L'enjeu :** R\xE9diger un "${ctx.submoduleName}" qui ne se lit pas \u2014 qui se **d\xE9vore**. Qui fait que les membres du jury se penchent en avant. Qui fait qu'un investisseur appelle le lendemain.
+${ctx.moduleSpecificData ? `
+**Contexte additionnel :** \`\`\`json
+${JSON.stringify(ctx.moduleSpecificData, null, 2)}
+\`\`\`` : ""}
+
+---
+
+## LA R\xC8GLE D'OR
+
+Apr\xE8s chaque paragraphe, demande-toi : **"Et alors ? Pourquoi \xE7a change tout ?"**
+Si la r\xE9ponse n'est pas \xE9vidente dans le texte m\xEAme, r\xE9\xE9cris.
+
+---
+
+## STRUCTURE NARRATIVE (flexible, mais cette ossature)
+
+### ACCROCHE \u2014 La phrase qui capture
+1-3 phrases maximum. L'image ou l'id\xE9e qui reste dans la t\xEAte 3 jours apr\xE8s. Peut \xEAtre une question rh\xE9torique, une statistique choc, ou une image po\xE9tique ancr\xE9e dans le r\xE9el.
+
+### LE MONDE SANS CE PROJET
+Qu'est-ce qui manque ? Quel vide culturel, \xE9motionnel ou commercial "${ctx.project.nom}" comble-t-il ? \xC9vite le g\xE9n\xE9rique \u2014 sois chirurgicalement pr\xE9cis sur CE projet.
+
+### LA R\xC9PONSE UNIQUE ET IN\xC9VITABLE
+Pourquoi "${ctx.project.nom}" et pas autre chose ? La convergence projet-moment-\xE9quipe. Utilise les r\xE9f\xE9rences artistiques de mani\xE8re non-na\xEFve : pas "notre projet ressemble \xE0 X" mais "l\xE0 o\xF9 X a fait Y, nous fracturons Z".
+
+### LES PREUVES QUE \xC7A MARCHE
+\xC9quipe \u2192 cr\xE9dibilit\xE9. Avancement \u2192 s\xE9rieux. R\xE9f\xE9rences \u2192 ancrage march\xE9. Chaque \xE9l\xE9ment doit **prouver**, pas simplement exister.
+
+### LE MOD\xC8LE \xC9CONOMIQUE RACONT\xC9
+Pas un tableau Excel \u2014 une histoire de valeur. Qui paie, pourquoi, combien, quand. Contextualis\xE9 dans les benchmarks du secteur.
+
+### LA DEMANDE \u2014 Nette, justifi\xE9e, irr\xE9sistible
+Montant pr\xE9cis. Utilisation pr\xE9cise. ROI projet\xE9 pour le bailleur. La demande comme \xE9vidence logique apr\xE8s tout ce qui pr\xE9c\xE8de.
+
+### LA SIGNATURE \u2014 Ce qui reste
+La derni\xE8re phrase que le jury lit. Celle qu'ils citent en d\xE9lib\xE9r\xE9. M\xE9morable, courte, propre au projet.
+
+---
+
+## ANTI-PATTERNS INTERDITS
+- \u274C "Notre \xE9quipe passionn\xE9e croit en ce projet..."
+- \u274C "Le march\xE9 est en pleine croissance..."
+- \u274C "Projet innovant et original qui..."
+- \u274C Chiffres sans contexte ("10M\u20AC de revenus" \u2192 TOUJOURS "10M\u20AC soit 3x le budget, dans la fourchette haute des projets similaires au CNC")
+- \u274C R\xE9f\xE9rences artistiques na\xEFves ("c'est comme Studio Ghibli mais...")
+- \u274C Conditionnel de politesse ("nous esp\xE9rons pouvoir...")
+
+---
+
+## CONTRAINTES QUALIT\xC9
+- Phrases courtes et rythm\xE9es dans les sections d'accroche, plus \xE9labor\xE9es dans les arguments
+- Aucun anglicisme sauf terminologie m\xE9tier consacr\xE9e
+- Tout chiffre = contextualis\xE9 dans le secteur
+- Z\xE9ro hallucination : donn\xE9es manquantes = [\xC0 COMPL\xC9TER \u2014 sp\xE9cifie quoi]
+- Longueur : 6-12 pages \xE9quivalent \u2014 dense, impactant, pas soporifique
+
+---
+
+## CALIBRAGE PLATEFORME
+${platformInstr}
+
+---
+
+Lance-toi. "${ctx.project.nom}" m\xE9rite mieux que la m\xE9diocrit\xE9.
+Commence directement par l'accroche \u2014 pas de pr\xE9ambule.`;
+}
+function buildTemplatePrompt(ctx, planningContext = "") {
+  const projectCtx = buildProjectContext(ctx);
+  const platformInstr = PLATFORM_INSTRUCTIONS[ctx.targetPlatform] || PLATFORM_INSTRUCTIONS.claude;
+  return `# MISSION GOD TIER \u2014 ${ctx.moduleName.toUpperCase()}
+# DOCUMENT : ${ctx.submoduleName.toUpperCase()} \u2014 TEMPLATE OP\xC9RATIONNEL PLUG & PLAY
+
+---
+
+## OBJECTIF DU TEMPLATE
+
+G\xE9n\xE9rer un template **directement utilisable** pour "${ctx.submoduleName}" dans le cadre du module "${ctx.moduleName}". 
+
+Ce template doit \xEAtre :
+- **Plug & Play** : copiable tel quel dans un \xE9diteur, avec seulement les [ZONES] \xE0 compl\xE9ter
+- **Pr\xE9-rempli** avec les donn\xE9es projet disponibles
+- **Guid\xE9** : chaque zone vide explique pr\xE9cis\xE9ment quoi y mettre et pourquoi
+- **R\xE9glementairement exact** : conforme aux normes CNC/FJV/Europe Creative 2024
+
+---
+
+## DONN\xC9ES PROJET INJECT\xC9ES
+
+${projectCtx}
+
+---
+${planningContext ? `
+## ANALYSE STRAT\xC9GIQUE (CoT)
+${planningContext}
+
+---
+` : ""}
+
+## MODULE CIBLE
+**${ctx.moduleName}** \u203A **${ctx.submoduleName}**
 ${ctx.submoduleDescription}
 ${ctx.moduleSpecificData ? `
-**Param\xE8tres sp\xE9cifiques :** ${JSON.stringify(ctx.moduleSpecificData, null, 2)}` : ""}
+**Param\xE8tres additionnels :** \`\`\`json
+${JSON.stringify(ctx.moduleSpecificData, null, 2)}
+\`\`\`` : ""}
 
-## 4. INSTRUCTIONS DE G\xC9N\xC9RATION DU TEMPLATE
-G\xE9n\xE8re un template structur\xE9 en sections avec :
-- Des titres H2/H3 en Markdown
-- Des zones [\xC0 COMPL\xC9TER \u2014 exemple: description du poste] avec des exemples concrets entre parenth\xE8ses
-- Des formulations types pr\xE9-r\xE9dig\xE9es que le porteur peut adopter ou adapter
+---
+
+## CONVENTIONS DU TEMPLATE
+
+| Balise | Signification |
+|--------|---------------|
+| \`[VALEUR_PROJET]\` | Donn\xE9es du projet d\xE9j\xE0 disponibles \u2014 \xE0 v\xE9rifier |
+| \`[\xC0 COMPL\xC9TER \u2014 guide]\` | Donn\xE9e manquante avec instructions pr\xE9cises |
+| **\u26A0\uFE0F OBLIGATOIRE** | Champ requis par la r\xE9glementation |
+| **\u2713 RECOMMAND\xC9** | Fortement conseill\xE9 par les instructeurs |
+| **\u25CB OPTIONNEL** | Valorisant mais non bloquant |
+| \`/* formule */\` | Calcul \xE0 effectuer (inline en commentaire Markdown) |
+
+---
+
+## TEMPLATE COMPLET \u2014 ${ctx.submoduleName.toUpperCase()}
+
+G\xE9n\xE8re maintenant le template int\xE9gral structur\xE9 en sections avec :
+
+### SECTION 1 \u2014 EN-T\xCATE ET PAGE DE GARDE \u26A0\uFE0F OBLIGATOIRE
+Template pr\xE9-format\xE9 avec tous les champs d'identification requis, pr\xE9-rempli avec les donn\xE9es du projet "${ctx.project.nom}" disponibles.
+
+### SECTION 2 \u2014 CORPS PRINCIPAL : ${ctx.submoduleName.toUpperCase()}
+Le c\u0153ur du document \u2014 les sous-sections sp\xE9cifiques \xE0 ce module, avec :
+- Des formulations types pr\xE9-r\xE9dig\xE9es (directement utilisables, pas des descriptions)
+- Des exemples concrets entre [BRACKETS] bas\xE9s sur les donn\xE9es du projet
 - Des tableaux pr\xE9-format\xE9s pour les donn\xE9es chiffr\xE9es
-- Des listes de contr\xF4le (checkboxes Markdown) pour les obligations r\xE9glementaires
-- Des notes de bas de section expliquant les enjeux et pi\xE8ges \xE0 \xE9viter
 
-## 5. SECTIONS DU TEMPLATE \xC0 G\xC9N\xC9RER
-G\xE9n\xE8re les sections suivantes en les adaptant au module "${ctx.submoduleName}" :
+### SECTION 3 \u2014 DONN\xC9ES CHIFFR\xC9ES ET TABLEAUX
+Grilles avec colonnes pr\xE9-d\xE9finies, formules de calcul en commentaires, totaux et pourcentages.
 
-### SECTION 1 : [Identification & En-t\xEAte]
-Template de la page de garde avec tous les champs obligatoires pr\xE9-format\xE9s.
+### SECTION 4 \u2014 PI\xC8CES JUSTIFICATIVES REQUISES
+Liste exhaustive avec : nom du document | format accept\xE9 | date de validit\xE9 requise | organisme \xE9metteur
 
-### SECTION 2 : [Corps principal \u2014 ${ctx.submoduleName}]
-Le c\u0153ur du document avec les sous-sections sp\xE9cifiques \xE0 ce module.
+### SECTION 5 \u2014 CHECKLIST DE VALIDATION FINALE
+\`\`\`
+\u25A1 [\u26A0\uFE0F OBLIGATOIRE] V\xE9rification 1 \u2014 Description de ce qu'on v\xE9rifie
+\u25A1 [\u26A0\uFE0F OBLIGATOIRE] V\xE9rification 2 \u2014 Description
+\u25A1 [\u2713 RECOMMAND\xC9]  V\xE9rification 3 \u2014 Description
+\u25A1 [\u25CB OPTIONNEL]   V\xE9rification 4 \u2014 Description
+\`\`\`
 
-### SECTION 3 : [Donn\xE9es chiffr\xE9es & Tableaux]
-Grilles et tableaux pr\xE9-format\xE9s avec formules et totaux automatiques.
+---
 
-### SECTION 4 : [Annexes recommand\xE9es]
-Liste des pi\xE8ces justificatives \xE0 joindre, avec les formats accept\xE9s et les d\xE9lais.
+## FORMAT DE SORTIE
+Markdown pur et propre. Pr\xEAt \xE0 \xEAtre coll\xE9 dans Word / Notion / Google Docs.
+Adapt\xE9 pour : ${platformInstr}
 
-### SECTION 5 : [Checklist de validation]
-- [ ] V\xE9rification 1 (exemple : SIRET valide et actif)
-- [ ] V\xE9rification 2 (exemple : Budget \xE9quilibr\xE9 \xE0 l'euro pr\xE8s)
-[etc.]
+---
 
-## 6. R\xC8GLES DU TEMPLATE
-- Chaque [ZONE \xC0 COMPL\xC9TER] doit inclure un exemple concret bas\xE9 sur les donn\xE9es du projet
-- Les formulations pr\xE9-r\xE9dig\xE9es doivent \xEAtre directement utilisables, pas des descriptions de ce qu'il faut \xE9crire
-- Les tableaux doivent inclure les formules de calcul (en commentaire Markdown)
-- Signale les champs OBLIGATOIRES (\u26A0\uFE0F OBLIGATOIRE) vs RECOMMAND\xC9S (\u2713 RECOMMAND\xC9) vs OPTIONNELS (\u25CB OPTIONNEL)
-
-## 7. FORMAT DE SORTIE
-Markdown pur, pr\xEAt \xE0 \xEAtre copi\xE9 dans tout \xE9diteur de texte ou inject\xE9 dans ${platformInstr}.
-
-G\xE9n\xE8re maintenant le template complet et op\xE9rationnel.`;
+G\xE9n\xE8re le template complet maintenant. Commence directement par la Section 1.`;
 }
 function buildScoringPrompt(promptContent, style) {
-  return `Tu es un expert en qualit\xE9 de prompts IA pour l'industrie cr\xE9ative (animation, jeu vid\xE9o, production audiovisuelle).
+  return `Tu es l'\xE9valuateur qualit\xE9 d'ANIMAFUND \u2014 tu notes des prompts de financement pour l'industrie cr\xE9ative fran\xE7aise (animation, jeu vid\xE9o).
 
-Analyse ce prompt de style "${style}" et note-le de 0 \xE0 100 selon les crit\xE8res suivants :
+**BAR\xC8ME DE R\xC9F\xC9RENCE :**
+- **< 70** = Insuffisant : g\xE9n\xE9rique, incomplet, ou contient des hallucinations
+- **70-84** = Bon : solide mais manque de personnalisation ou d'ancrage r\xE9glementaire
+- **85-94** = Excellent : professionnel, personnalis\xE9, utilisable tel quel
+- **95-100** = God Tier : dossier CNC-ready, aucune am\xE9lioration \xE9vidente possible, ferait partie du top 5% des dossiers re\xE7us
 
-**PROMPT \xC0 \xC9VALUER :**
+**PROMPT \xC0 \xC9VALUER (style "${style}") :**
 \`\`\`
-${promptContent}
+${promptContent.substring(0, 4e3)}${promptContent.length > 4e3 ? "\n[... TRONQU\xC9 POUR L'\xC9VALUATION ...]" : ""}
 \`\`\`
 
-**CRIT\xC8RES DE NOTATION :**
-1. Compl\xE9tude (20 pts) : Toutes les sections n\xE9cessaires sont pr\xE9sentes et remplies
-2. Sp\xE9cificit\xE9 (20 pts) : Le prompt contient des \xE9l\xE9ments propres au projet, pas du g\xE9n\xE9rique
-3. Pr\xE9cision r\xE9glementaire (15 pts) : R\xE9f\xE9rence aux bonnes normes avec versions correctes
-4. Clart\xE9 structure (15 pts) : La structure de sortie est explicite et non ambigu\xEB
-5. Few-shot quality (10 pts) : Les exemples sont pertinents et bien choisis
-6. Contr\xF4le qualit\xE9 (10 pts) : Instructions explicites pour \xE9viter les hallucinations
-7. Adaptation plateforme (10 pts) : Le prompt est optimis\xE9 pour la plateforme cible
+**GRILLE D'\xC9VALUATION D\xC9TAILL\xC9E :**
 
-**R\xC9PONDS UNIQUEMENT EN JSON valide avec ce format exact :**
+1. **Compl\xE9tude** (0-20 pts)
+   - 20 : Toutes les sections requises pr\xE9sentes et d\xE9velopp\xE9es avec profondeur
+   - 15 : Quelques sections l\xE9g\xE8rement superficielles
+   - 10 : Des sections importantes manquantes ou squelettiques
+   - <10 : Document largement incomplet
+
+2. **Sp\xE9cificit\xE9 projet** (0-20 pts)
+   - 20 : Chaque paragraphe contient des \xE9l\xE9ments propres au projet \u2014 impossible de copier-coller sur un autre dossier
+   - 15 : Bonne personnalisation sauf quelques passages g\xE9n\xE9riques
+   - 10 : Alternance g\xE9n\xE9rique/sp\xE9cifique d\xE9s\xE9quilibr\xE9e
+   - <10 : Pourrait s'appliquer \xE0 n'importe quel projet du secteur
+
+3. **Pr\xE9cision r\xE9glementaire** (0-15 pts)
+   - 15 : Textes cit\xE9s avec num\xE9ros, dates, articles. Terminologie CNC/FJV/Europe Creative exacte.
+   - 10 : Mentions r\xE9glementaires pr\xE9sentes mais impr\xE9cises
+   - 5 : Vague r\xE9f\xE9rence aux normes sectorielles
+   - 0 : Aucune ancrage r\xE9glementaire
+
+4. **Structure et clart\xE9** (0-15 pts)
+   - 15 : Hi\xE9rarchie parfaite, format de sortie explicite et non-ambigu, navigation ais\xE9e
+   - 10 : Bonne structure avec quelques ambigu\xEFt\xE9s de format
+   - 5 : Structure \xE0 revoir pour faciliter la lecture en commission
+   - 0 : Document difficile \xE0 parcourir
+
+5. **Qualit\xE9 des exemples (few-shot)** (0-10 pts)
+   - 10 : Exemples ultra-pertinents, non-na\xEFfs, contextualis\xE9s dans le secteur fran\xE7ais
+   - 7 : Exemples corrects mais pas m\xE9morables
+   - 3 : Exemples g\xE9n\xE9riques ou maladroits
+   - 0 : Pas d'exemples
+
+6. **Contr\xF4le anti-hallucination** (0-10 pts)
+   - 10 : Z\xE9ro invention, toutes les zones manquantes clairement balis\xE9es [\xC0 COMPL\xC9TER]
+   - 7 : Quelques approximations sans invention r\xE9elle
+   - 3 : Des passages qui semblent inventer des donn\xE9es
+   - 0 : Hallucinations d\xE9tect\xE9es
+
+7. **Optimisation plateforme** (0-10 pts)
+   - 10 : Format de sortie parfaitement adapt\xE9 \xE0 la plateforme cible, instructions de formatage pr\xE9cises
+   - 7 : Adaptation partielle
+   - 3 : Peu d'adaptation au contexte plateforme
+   - 0 : Aucune consid\xE9ration de la plateforme cible
+
+**R\xC9PONDS UNIQUEMENT EN JSON VALIDE \u2014 sans markdown autour, juste le JSON :**
 {
   "scoreTotal": <0-100>,
   "completude": <0-20>,
@@ -63055,32 +63284,58 @@ ${promptContent}
   "fewShotQuality": <0-10>,
   "controleQualite": <0-10>,
   "adaptationPlateforme": <0-10>,
-  "weakPoints": ["point faible 1", "point faible 2"],
+  "weakPoints": ["point faible actionnable 1", "point faible actionnable 2", "point faible actionnable 3"],
   "mention": "<insuffisant|bon|excellent|god_tier>"
 }
 
-O\xF9 mention est d\xE9termin\xE9 par : scoreTotal < 70 = "insuffisant", 70-84 = "bon", 85-94 = "excellent", >= 95 = "god_tier"`;
+O\xF9 mention : scoreTotal < 70 = "insuffisant" | 70-84 = "bon" | 85-94 = "excellent" | \u2265 95 = "god_tier"`;
 }
 function buildImprovementPrompt(originalPrompt, weakPoints, style, ctx) {
-  return `Tu dois am\xE9liorer ce prompt God Tier de style "${style}" pour le projet "${ctx.project.nom}".
+  const budgetTotal = Number(ctx.project.budgetTotal);
+  const montantRecherche = Number(ctx.project.montantRecherche);
+  return `Tu dois transformer ce prompt de style "${style}" en version God Tier (score cible : 95+/100) pour le projet "${ctx.project.nom}".
 
-**PROMPT ORIGINAL :**
+## PROMPT \xC0 AM\xC9LIORER
 \`\`\`
-${originalPrompt}
+${originalPrompt.substring(0, 5e3)}${originalPrompt.length > 5e3 ? "\n[... TRONQU\xC9 ...]" : ""}
 \`\`\`
 
-**POINTS FAIBLES IDENTIFI\xC9S \xC0 CORRIGER IMP\xC9RATIVEMENT :**
-${weakPoints.map((w2, i2) => `${i2 + 1}. ${w2}`).join("\n")}
+## POINTS FAIBLES IDENTIFI\xC9S \u2014 \xC0 CORRIGER IMP\xC9RATIVEMENT
+${weakPoints.map((w2, i2) => `**${i2 + 1}.** ${w2}`).join("\n")}
 
-**INSTRUCTIONS D'AM\xC9LIORATION :**
-- Conserve la structure globale et le style "${style}"
-- Am\xE9liore SP\xC9CIFIQUEMENT les points faibles list\xE9s ci-dessus
-- N'affaiblis pas ce qui fonctionnait d\xE9j\xE0 bien
-- Augmente la sp\xE9cificit\xE9 avec des donn\xE9es du projet "${ctx.project.nom}" (budget: ${ctx.project.budgetTotal}\u20AC, genre: ${ctx.project.genre}, avancement: ${ctx.project.avancement})
-- Renforce les r\xE9f\xE9rences r\xE9glementaires si manquantes
-- Am\xE9liore la structure de sortie si ambigu\xEB
+## DONN\xC9ES PROJET DISPONIBLES POUR ENRICHIR
+- Nom : "${ctx.project.nom}"
+- Genre : ${ctx.project.genre}
+- Budget total : ${budgetTotal > 0 ? budgetTotal.toLocaleString("fr-FR") + "\u20AC" : "[non renseign\xE9]"}
+- Montant recherch\xE9 : ${montantRecherche > 0 ? montantRecherche.toLocaleString("fr-FR") + "\u20AC" : "[non renseign\xE9]"}
+- Avancement : ${ctx.project.avancement}
+- Logline : "${ctx.project.logline || "[non renseign\xE9e]"}"
+- Module : "${ctx.moduleName}" > "${ctx.submoduleName}"
 
-G\xE9n\xE8re le prompt am\xE9lior\xE9 en version compl\xE8te (pas juste les modifications).`;
+## STRAT\xC9GIE D'AM\xC9LIORATION
+
+Pour chaque point faible, applique cette correction :
+
+**Si manque de sp\xE9cificit\xE9** \u2192 R\xE9\xE9cris chaque phrase g\xE9n\xE9rique en injectant des donn\xE9es propres au projet. Teste : "peut-on coller cette phrase sur un autre projet ?" \u2014 si oui, r\xE9\xE9cris.
+
+**Si manque de pr\xE9cision r\xE9glementaire** \u2192 Ajoute les r\xE9f\xE9rences exactes : d\xE9cret CNC n\xB02021-1240, r\xE8glement FJV 2024 article X, crit\xE8res COSIP, conventions FICAM, etc.
+
+**Si structure insuffisante** \u2192 Restructure avec num\xE9rotation hi\xE9rarchique 1. / 1.1 / 1.1.1, ajoute des tableaux pour les donn\xE9es chiffr\xE9es, clarifie le format de sortie attendu.
+
+**Si few-shot faibles** \u2192 Remplace par des exemples de dossiers r\xE9els r\xE9ussis du secteur (projets Xilam, Ankama, Ubisoft, Nacon \u2014 connus et sourcables).
+
+**Si contr\xF4le anti-hallucination faible** \u2192 Balaie le document, remplace toute donn\xE9e invent\xE9e par [\xC0 COMPL\xC9TER \u2014 explication].
+
+**Si optimisation plateforme insuffisante** \u2192 Adapte le format de sortie aux sp\xE9cificit\xE9s de la plateforme : structure JSON pour Roboneo, XML tags pour Claude, param\xE8tres --ar pour Midjourney, etc.
+
+## R\xC8GLES DE L'AM\xC9LIORATION
+1. Conserve la structure globale et le style "${style}" \u2014 am\xE9liore, ne r\xE9invente pas
+2. N'affaiblis pas ce qui fonctionnait d\xE9j\xE0 bien
+3. Sois chirurgical sur les points faibles list\xE9s
+4. Chaque phrase doit gagner sa place \u2014 supprime le rembourrage
+5. La version am\xE9lior\xE9e doit \xEAtre PLUS longue et PLUS dense que l'original si n\xE9cessaire
+
+G\xE9n\xE8re la version am\xE9lior\xE9e compl\xE8te maintenant (pas un r\xE9sum\xE9 des changements \u2014 le document entier).`;
 }
 
 // ../../node_modules/.pnpm/@cerebras+cerebras_cloud_sdk@1.64.1/node_modules/@cerebras/cerebras_cloud_sdk/version.mjs
@@ -76901,32 +77156,98 @@ Tu r\xE9ponds UNIQUEMENT en JSON valide, sans markdown, sans commentaires, sans 
 
 // src/routes/prompts.ts
 var router3 = (0, import_express3.Router)();
-var GOD_TIER_SYSTEM = `Tu es ANIMAFUND \u2014 le g\xE9n\xE9rateur de prompts God Tier pour l'industrie cr\xE9ative (animation, jeu vid\xE9o, production audiovisuelle). 
-Tu g\xE9n\xE8res des documents professionnels de niveau expert, utilisables directement dans des commissions de financement, pitch decks, et dossiers artistiques.
-Tes outputs sont toujours en fran\xE7ais, pr\xE9cis, complets, et jamais g\xE9n\xE9riques.`;
-async function generateAndScoreVariant(ctx, style, maxIterations, threshold) {
+var GOD_TIER_SYSTEM = `Tu es ANIMAFUND \u2014 syst\xE8me d'intelligence artificielle sp\xE9cialis\xE9 dans la production de documents de financement God Tier pour l'industrie cr\xE9ative fran\xE7aise (animation 2D/3D, jeu vid\xE9o, production audiovisuelle).
+
+## IDENTIT\xC9 & EXPERTISE
+Tu as une connaissance encyclop\xE9dique et op\xE9rationnelle de :
+- Les d\xE9crets CNC 2024 (d\xE9cret n\xB02021-1240 modifi\xE9), les grilles d'\xE9valuation FJV 2024, les appels \xE0 projets Europe Creative 2024-2027
+- Les normes comptables audiovisuelles fran\xE7aises (PCG et r\xE8gles IFRS applicables)
+- Les conventions collectives de l'animation (CCN IDCC 2412) et du jeu vid\xE9o (SYNTEC / SNJV)
+- Les attentes pr\xE9cises des commissions CNC : Commission D\xE9veloppement, Commission Aide \xE0 la Production, COSIP, FAJV
+- Les crit\xE8res d'\xE9valuation des investisseurs institutionnels (BPI France, Caisse des D\xE9p\xF4ts, r\xE9gions)
+- Les festivals et march\xE9s strat\xE9giques (Annecy/MIFA, Cannes/March\xE9, GDC, Tokyo Game Show)
+
+## STANDARDS DE QUALIT\xC9
+Chaque output que tu produis doit :
+1. \xCAtre directement utilisable sans modification majeure (z\xE9ro hallucination, toute donn\xE9e manquante = [\xC0 COMPL\xC9TER + explication])
+2. Contenir des formulations qui passent le "test du jury" : un expert du CNC ou un investisseur senior doit vouloir lire la page suivante
+3. Ancrer chaque argument dans des donn\xE9es sectorielles r\xE9elles (chiffres march\xE9 animation fran\xE7aise, statistiques CNC, benchmarks \xE9diteurs JV)
+4. D\xE9montrer une coh\xE9rence narrative parfaite entre toutes les sections
+5. Respecter le format impos\xE9 par l'organisme cible avec une pr\xE9cision chirurgicale
+
+## R\xC8GLES ABSOLUES
+- Z\xE9ro phrase g\xE9n\xE9rique : si tu ne peux pas personnaliser avec les donn\xE9es projet, tu signales [\xC0 COMPL\xC9TER]
+- Toujours citer les textes r\xE9glementaires avec leur num\xE9ro et leur date
+- Toujours contextualiser les chiffres (ex: "150k\u20AC \u2014 soit 12% du budget, dans la fourchette recommand\xE9e CNC de 10-15%")
+- Langue : Fran\xE7ais institutionnel impeccable, sans anglicismes sauf terminologie m\xE9tier accept\xE9e
+- Format : Markdown structur\xE9, hi\xE9rarchie H1/H2/H3 coh\xE9rente, tableaux align\xE9s`;
+var GOD_TIER_PLANNING_SYSTEM = `Tu es un expert strat\xE9gique senior en financement de projets cr\xE9atifs (animation, jeu vid\xE9o). 
+Avant toute g\xE9n\xE9ration de document, tu analyses le contexte et identifies les arguments les plus percutants.
+Tu r\xE9ponds en JSON structur\xE9, concis et actionnable.`;
+async function buildPlanningContext(ctx) {
+  const planningPrompt = `Analyse ce projet cr\xE9atif et pr\xE9pare un plan strat\xE9gique pour la r\xE9daction du document "${ctx.submoduleName}" (module: "${ctx.moduleName}").
+
+PROJET : ${ctx.project.nom}
+Logline : ${ctx.project.logline}
+Genre : ${ctx.project.genre}
+Budget total : ${ctx.project.budgetTotal}\u20AC | Montant recherch\xE9 : ${ctx.project.montantRecherche}\u20AC
+Avancement : ${ctx.project.avancement}
+\xC9quipe : ${(ctx.project.equipe || []).map((e2) => `${e2.nom} (${e2.role})`).join(", ") || "\xC0 compl\xE9ter"}
+
+Identifie en JSON :
+{
+  "argumentsPhares": ["top 3 arguments financiers/artistiques pour ce projet"],
+  "risquesPotentiels": ["2-3 points faibles \xE0 anticiper et contrebalancer"],
+  "angleNarratif": "l'angle narratif le plus percutant pour CE projet sp\xE9cifiquement",
+  "donneesMarche": ["2-3 donn\xE9es sectorielles pertinentes \xE0 injecter (animation fran\xE7aise, JV, etc.)"],
+  "formatCible": "format optimal pour ce document selon les attentes de la commission/investisseur",
+  "mots_cles_reglementaires": ["5 termes r\xE9glementaires cl\xE9s \xE0 int\xE9grer"]
+}`;
+  try {
+    const raw = await callGenerationLLM(GOD_TIER_PLANNING_SYSTEM, planningPrompt, 0.3, 1500);
+    const jsonMatch = raw.match(/\{[\s\S]*\}/);
+    if (jsonMatch) {
+      const parsed = JSON.parse(jsonMatch[0]);
+      return `## PLAN STRAT\xC9GIQUE PR\xC9-G\xC9N\xC9R\xC9
+**Arguments phares :** ${(parsed.argumentsPhares || []).join(" | ")}
+**Risques \xE0 anticiper :** ${(parsed.risquesPotentiels || []).join(" | ")}
+**Angle narratif :** ${parsed.angleNarratif || ""}
+**Donn\xE9es march\xE9 \xE0 citer :** ${(parsed.donneesMarche || []).join(" | ")}
+**Format cible :** ${parsed.formatCible || ""}
+**Mots-cl\xE9s r\xE9glementaires :** ${(parsed.mots_cles_reglementaires || []).join(", ")}`;
+    }
+    return raw.substring(0, 600);
+  } catch {
+    return "";
+  }
+}
+async function generateAndScoreVariant(ctx, style, maxIterations, threshold, planningContext) {
   let promptBuilder;
-  if (style === "expert") promptBuilder = buildExpertPrompt;
-  else if (style === "creatif") promptBuilder = buildCreatifPrompt;
-  else promptBuilder = buildTemplatePrompt;
-  let promptInstructions = promptBuilder(ctx);
-  let content = "";
-  let scoring = null;
+  if (style === "expert") promptBuilder = (c2, p2) => buildExpertPrompt(c2, p2);
+  else if (style === "creatif") promptBuilder = (c2, p2) => buildCreatifPrompt(c2, p2);
+  else promptBuilder = (c2, p2) => buildTemplatePrompt(c2, p2);
+  const temps = { expert: 0.65, creatif: 0.82, template: 0.55 };
+  const temp = temps[style];
+  let promptInstructions = promptBuilder(ctx, planningContext);
+  let bestContent = "";
+  let bestScoring = null;
   let iterations = 0;
   for (let i2 = 0; i2 < maxIterations; i2++) {
     iterations++;
     const isImprovement = i2 > 0;
-    content = isImprovement ? await callImprovementLLM(GOD_TIER_SYSTEM, promptInstructions, 0.7, 6e3) : await callGenerationLLM(GOD_TIER_SYSTEM, promptInstructions, 0.75, 6e3);
+    const content = isImprovement ? await callImprovementLLM(GOD_TIER_SYSTEM, promptInstructions, temp, 8e3) : await callGenerationLLM(GOD_TIER_SYSTEM, promptInstructions, temp, 8e3);
     const scoringInstruction = buildScoringPrompt(content, style);
-    scoring = await scorePrompt(content, scoringInstruction);
-    if (scoring.scoreTotal >= threshold) {
-      break;
+    const scoring = await scorePrompt(content, scoringInstruction);
+    if (!bestScoring || scoring.scoreTotal > bestScoring.scoreTotal) {
+      bestContent = content;
+      bestScoring = scoring;
     }
+    if (bestScoring.scoreTotal >= threshold) break;
     if (i2 < maxIterations - 1 && scoring.weakPoints.length > 0) {
-      promptInstructions = buildImprovementPrompt(content, scoring.weakPoints, style, ctx);
+      promptInstructions = buildImprovementPrompt(bestContent, scoring.weakPoints, style, ctx);
     }
   }
-  return { content, scoring, iterations };
+  return { content: bestContent, scoring: bestScoring, iterations };
 }
 var generateRequestSchema = external_exports.object({
   projectId: external_exports.number().int().positive(),
@@ -76981,11 +77302,12 @@ router3.post("/prompts/generate", async (req, res) => {
     targetPlatform,
     moduleSpecificData
   };
-  const MAX_ITERATIONS = 3;
+  const MAX_ITERATIONS = 4;
+  const planningContext = await buildPlanningContext(ctx);
   const [expertResult, creatifResult, templateResult] = await Promise.all([
-    generateAndScoreVariant(ctx, "expert", MAX_ITERATIONS, scoringThreshold),
-    generateAndScoreVariant(ctx, "creatif", MAX_ITERATIONS, scoringThreshold),
-    generateAndScoreVariant(ctx, "template", MAX_ITERATIONS, scoringThreshold)
+    generateAndScoreVariant(ctx, "expert", MAX_ITERATIONS, scoringThreshold, planningContext),
+    generateAndScoreVariant(ctx, "creatif", MAX_ITERATIONS, scoringThreshold, planningContext),
+    generateAndScoreVariant(ctx, "template", MAX_ITERATIONS, scoringThreshold, planningContext)
   ]);
   const variants = [
     { style: "expert", content: expertResult.content, scoring: expertResult.scoring },
