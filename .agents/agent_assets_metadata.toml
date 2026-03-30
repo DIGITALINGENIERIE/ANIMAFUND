@@ -1,0 +1,8 @@
+uploads = []
+generated = []
+
+[[outputs]]
+id = "IxAiCMDMUvrw9qzTN7kj-"
+uri = "file://README.md"
+type = "text"
+title = "README.md — ANIMAFUND"
