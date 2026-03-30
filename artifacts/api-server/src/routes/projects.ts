@@ -53,7 +53,7 @@ router.post("/projects", async (req: Request, res: Response) => {
 });
 
 router.get("/projects/:id", async (req: Request, res: Response) => {
-  const id = parseInt(req.params.id);
+  const id = parseInt(req.params["id"] as string);
   if (isNaN(id)) {
     res.status(400).json({ error: "invalid_id", message: "ID must be a number" });
     return;
@@ -67,7 +67,7 @@ router.get("/projects/:id", async (req: Request, res: Response) => {
 });
 
 router.put("/projects/:id", async (req: Request, res: Response) => {
-  const id = parseInt(req.params.id);
+  const id = parseInt(req.params["id"] as string);
   if (isNaN(id)) {
     res.status(400).json({ error: "invalid_id", message: "ID must be a number" });
     return;
@@ -91,7 +91,7 @@ router.put("/projects/:id", async (req: Request, res: Response) => {
 });
 
 router.delete("/projects/:id", async (req: Request, res: Response) => {
-  const id = parseInt(req.params.id);
+  const id = parseInt(req.params["id"] as string);
   if (isNaN(id)) {
     res.status(400).json({ error: "invalid_id", message: "ID must be a number" });
     return;

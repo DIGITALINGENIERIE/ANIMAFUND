@@ -94,3 +94,19 @@ Generated React Query hooks and fetch client from the OpenAPI spec (e.g. `useHea
 ### `scripts` (`@workspace/scripts`)
 
 Utility scripts package. Each script is a `.ts` file in `src/` with a corresponding npm script in `package.json`. Run scripts via `pnpm --filter @workspace/scripts run <script>`. Scripts can import any workspace package (e.g., `@workspace/db`) by adding it as a dependency in `scripts/package.json`.
+
+### `artifacts/animafund` (`@workspace/animafund`)
+
+React + Vite frontend. AI-powered prompt generator for animation/game funding applications.
+
+- Entry: `src/main.tsx`
+- Dev: `PORT=5000 BASE_PATH=/ API_PORT=3000 pnpm --filter @workspace/animafund run dev`
+- Vite proxy: `/api` requests are forwarded to `localhost:$API_PORT`
+- `allowedHosts: true` configured for Replit proxy compatibility
+
+## Replit Environment Setup
+
+- **Workflow**: "Start application" — runs api-server (port 3000) + animafund frontend (port 5000) together
+- **Env vars**: `PORT=5000`, `BASE_PATH=/`, `API_PORT=3000`, `NODE_ENV=development`
+- **DB**: PostgreSQL via `DATABASE_URL` secret (Replit-managed); schema pushed with `pnpm --filter @workspace/db run push`
+- **Dev command**: `PORT=3000 pnpm --filter @workspace/api-server run dev & PORT=5000 BASE_PATH=/ API_PORT=3000 pnpm --filter @workspace/animafund run dev`

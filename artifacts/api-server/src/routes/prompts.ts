@@ -199,7 +199,7 @@ router.post("/prompts/generate", async (req: Request, res: Response) => {
 });
 
 router.get("/prompts/:projectId", async (req: Request, res: Response) => {
-  const projectId = parseInt(req.params.projectId);
+  const projectId = parseInt(req.params["projectId"] as string);
   if (isNaN(projectId)) {
     res.status(400).json({ error: "invalid_id", message: "Project ID must be a number" });
     return;
@@ -212,9 +212,9 @@ router.get("/prompts/:projectId", async (req: Request, res: Response) => {
 });
 
 router.get("/prompts/:projectId/:moduleId/:submoduleId", async (req: Request, res: Response) => {
-  const projectId = parseInt(req.params.projectId);
-  const moduleId = parseInt(req.params.moduleId);
-  const { submoduleId } = req.params;
+  const projectId = parseInt(req.params["projectId"] as string);
+  const moduleId = parseInt(req.params["moduleId"] as string);
+  const submoduleId = req.params["submoduleId"] as string;
 
   if (isNaN(projectId) || isNaN(moduleId)) {
     res.status(400).json({ error: "invalid_id", message: "IDs must be numbers" });

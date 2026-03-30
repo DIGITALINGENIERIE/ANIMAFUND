@@ -56321,7 +56321,7 @@ router2.post("/projects", async (req, res) => {
   res.status(201).json(project);
 });
 router2.get("/projects/:id", async (req, res) => {
-  const id = parseInt(req.params.id);
+  const id = parseInt(req.params["id"]);
   if (isNaN(id)) {
     res.status(400).json({ error: "invalid_id", message: "ID must be a number" });
     return;
@@ -56334,7 +56334,7 @@ router2.get("/projects/:id", async (req, res) => {
   res.json(project);
 });
 router2.put("/projects/:id", async (req, res) => {
-  const id = parseInt(req.params.id);
+  const id = parseInt(req.params["id"]);
   if (isNaN(id)) {
     res.status(400).json({ error: "invalid_id", message: "ID must be a number" });
     return;
@@ -56353,7 +56353,7 @@ router2.put("/projects/:id", async (req, res) => {
   res.json(updated);
 });
 router2.delete("/projects/:id", async (req, res) => {
-  const id = parseInt(req.params.id);
+  const id = parseInt(req.params["id"]);
   if (isNaN(id)) {
     res.status(400).json({ error: "invalid_id", message: "ID must be a number" });
     return;
@@ -61881,7 +61881,7 @@ router3.post("/prompts/generate", async (req, res) => {
   });
 });
 router3.get("/prompts/:projectId", async (req, res) => {
-  const projectId = parseInt(req.params.projectId);
+  const projectId = parseInt(req.params["projectId"]);
   if (isNaN(projectId)) {
     res.status(400).json({ error: "invalid_id", message: "Project ID must be a number" });
     return;
@@ -61890,9 +61890,9 @@ router3.get("/prompts/:projectId", async (req, res) => {
   res.json(prompts);
 });
 router3.get("/prompts/:projectId/:moduleId/:submoduleId", async (req, res) => {
-  const projectId = parseInt(req.params.projectId);
-  const moduleId = parseInt(req.params.moduleId);
-  const { submoduleId } = req.params;
+  const projectId = parseInt(req.params["projectId"]);
+  const moduleId = parseInt(req.params["moduleId"]);
+  const submoduleId = req.params["submoduleId"];
   if (isNaN(projectId) || isNaN(moduleId)) {
     res.status(400).json({ error: "invalid_id", message: "IDs must be numbers" });
     return;
