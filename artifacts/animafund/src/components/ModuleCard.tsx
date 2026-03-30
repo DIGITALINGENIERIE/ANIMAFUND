@@ -8,6 +8,7 @@ interface ModuleCardProps {
   module: Module;
   projectPrompts: GeneratedPrompt[];
   onGenerateModule: (moduleId: number) => void;
+  onGenerateSubmodule: (moduleId: number, submoduleId: string) => void;
   onViewPrompt: (moduleId: number, submoduleId: string) => void;
 }
 
@@ -18,7 +19,7 @@ function getMentionData(score: number) {
   return { label: 'INSUFFISANT', color: '#FF4444', glow: 'rgba(255,68,68,0.3)' };
 }
 
-export function ModuleCard({ module, projectPrompts, onGenerateModule, onViewPrompt }: ModuleCardProps) {
+export function ModuleCard({ module, projectPrompts, onGenerateModule, onGenerateSubmodule, onViewPrompt }: ModuleCardProps) {
   const [expanded, setExpanded] = useState(false);
 
   const submodules = module.submodules || [];
@@ -202,7 +203,7 @@ export function ModuleCard({ module, projectPrompts, onGenerateModule, onViewPro
                   initial={{ opacity: 0, x: -8 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: idx * 0.04 }}
-                  onClick={() => isGenerated ? onViewPrompt(module.id, sm.id) : (firstMissing?.id === sm.id ? onGenerateModule(module.id) : onViewPrompt(module.id, sm.id))}
+                  onClick={() => isGenerated ? onViewPrompt(module.id, sm.id) : onGenerateSubmodule(module.id, sm.id)}
                   className="w-full flex items-center justify-between px-3 py-1.5 text-left transition-all duration-200 group/sm hover:bg-white/5 border border-transparent hover:border-white/5"
                   style={rowStyle}
                 >

@@ -15,8 +15,8 @@ import { PromptPanel } from '@/components/PromptPanel';
 // Static LLM status based on env availability (client-side visible via the API /health route)
 const LLM_STACK = [
   { id: 'cerebras', label: 'CEREBRAS', model: 'Qwen-3 235B', role: 'GÉNÉRATION', color: '#FF6B35' },
-  { id: 'claude',   label: 'CLAUDE',   model: 'Sonnet 4-6',  role: 'AMÉLIORATION', color: '#CC44FF' },
-  { id: 'openai',   label: 'GPT',      model: 'GPT-5.2',     role: 'FALLBACK', color: '#00AA88' },
+  { id: 'claude',   label: 'CLAUDE',   model: 'Sonnet 4-5',  role: 'AMÉLIORATION', color: '#CC44FF' },
+  { id: 'openai',   label: 'GPT',      model: 'GPT-4o',      role: 'FALLBACK', color: '#00AA88' },
 ];
 
 export default function Dashboard() {
@@ -378,6 +378,7 @@ export default function Dashboard() {
                       module={module}
                       projectPrompts={projectPrompts}
                       onViewPrompt={handleViewPrompt}
+                      onGenerateSubmodule={handleGeneratePrompt}
                       onGenerateModule={(mId) => {
                         const firstMissing = module.submodules?.find(sm =>
                           !projectPrompts.some(p => p.submoduleId === sm.id && p.moduleId === mId)
