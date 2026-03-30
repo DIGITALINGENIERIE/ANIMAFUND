@@ -25,7 +25,7 @@ const openai = process.env.AI_INTEGRATIONS_OPENAI_API_KEY
 
 // ─── Modèles ──────────────────────────────────────────────────────────────────
 
-const CEREBRAS_MODEL = "llama-3.3-70b";
+const CEREBRAS_MODEL = "qwen-3-235b-a22b-instruct-2507";
 const CLAUDE_MODEL = "claude-sonnet-4-6";
 const GPT_MODEL = "gpt-5.2";
 
