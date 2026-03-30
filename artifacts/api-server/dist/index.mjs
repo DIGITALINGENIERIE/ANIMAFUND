@@ -77048,8 +77048,8 @@ var openai = process.env.AI_INTEGRATIONS_OPENAI_API_KEY ? new OpenAI({
   baseURL: process.env.AI_INTEGRATIONS_OPENAI_BASE_URL
 }) : null;
 var CEREBRAS_MODEL = "qwen-3-235b-a22b-instruct-2507";
-var CLAUDE_MODEL = "claude-sonnet-4-6";
-var GPT_MODEL = "gpt-5.2";
+var CLAUDE_MODEL = "claude-sonnet-4-5";
+var GPT_MODEL = "gpt-4o";
 var MAX_RETRIES = 3;
 var RETRY_DELAY_MS = 1e3;
 async function sleep4(ms) {
