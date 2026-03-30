@@ -3,63 +3,94 @@ import { cn } from '@/lib/utils';
 import { Loader2 } from 'lucide-react';
 
 interface TechButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: 'cyan' | 'gold' | 'red' | 'ghost';
+  variant?: 'cyan' | 'gold' | 'red' | 'ghost' | 'purple';
   size?: 'sm' | 'md' | 'lg';
   isLoading?: boolean;
 }
 
-export function TechButton({ 
-  children, 
-  variant = 'cyan', 
-  size = 'md', 
-  className, 
+export function TechButton({
+  children,
+  variant = 'cyan',
+  size = 'md',
+  className,
   isLoading,
   disabled,
-  ...props 
+  ...props
 }: TechButtonProps) {
   const variants = {
-    cyan: 'border-cyan text-cyan hover:bg-cyan/10 hover:shadow-[0_0_15px_rgba(0,240,255,0.3)] hover:text-white',
-    gold: 'border-gold text-gold hover:bg-gold/10 hover:shadow-[0_0_15px_rgba(255,215,0,0.3)] hover:text-white',
-    red: 'border-red text-red hover:bg-red/10 hover:shadow-[0_0_15px_rgba(255,68,68,0.3)] hover:text-white',
-    ghost: 'border-transparent text-muted hover:text-foreground hover:bg-surface-hover',
+    cyan:   { color: '#00C8FF', bg: 'rgba(0,200,255,0.06)',   hoverBg: 'rgba(0,200,255,0.18)',   glow: '0 0 20px rgba(0,200,255,0.35)'   },
+    gold:   { color: '#FFD700', bg: 'rgba(255,215,0,0.06)',   hoverBg: 'rgba(255,215,0,0.18)',   glow: '0 0 20px rgba(255,215,0,0.35)'   },
+    red:    { color: '#FF4444', bg: 'rgba(255,68,68,0.06)',   hoverBg: 'rgba(255,68,68,0.18)',   glow: '0 0 20px rgba(255,68,68,0.35)'   },
+    purple: { color: '#CC44FF', bg: 'rgba(204,68,255,0.06)',  hoverBg: 'rgba(204,68,255,0.18)',  glow: '0 0 20px rgba(204,68,255,0.35)'  },
+    ghost:  { color: 'rgba(180,195,215,0.6)', bg: 'transparent', hoverBg: 'rgba(255,255,255,0.04)', glow: 'none' },
   };
 
   const sizes = {
-    sm: 'px-3 py-1.5 text-xs',
-    md: 'px-4 py-2 text-sm',
-    lg: 'px-6 py-3 text-base',
+    sm: 'px-3 py-1.5 text-[10px] tracking-[0.2em]',
+    md: 'px-4 py-2 text-xs tracking-[0.2em]',
+    lg: 'px-6 py-3 text-sm tracking-[0.2em]',
   };
 
+  const v = variants[variant];
+
   return (
-    <button 
+    <button
       disabled={isLoading || disabled}
       className={cn(
-        "relative flex items-center justify-center border bg-surface/50 font-display font-bold uppercase tracking-widest transition-all duration-300 clip-corner-sm disabled:opacity-50 disabled:cursor-not-allowed overflow-hidden group",
-        variants[variant],
+        "relative flex items-center justify-center font-display font-bold uppercase transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed overflow-hidden group clip-corner-sm",
         sizes[size],
         className
       )}
+      style={{
+        border: `1px solid ${v.color}55`,
+        color: v.color,
+        background: v.bg,
+      }}
+      onMouseEnter={e => {
+        if (!disabled && !isLoading) {
+          (e.currentTarget as HTMLButtonElement).style.background = v.hoverBg;
+          (e.currentTarget as HTMLButtonElement).style.boxShadow = v.glow;
+        }
+      }}
+      onMouseLeave={e => {
+        (e.currentTarget as HTMLButtonElement).style.background = v.bg;
+        (e.currentTarget as HTMLButtonElement).style.boxShadow = 'none';
+      }}
       {...props}
     >
-      {/* Scanning laser effect on hover */}
-      <div className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/10 to-transparent group-hover:animate-[shimmer_1.5s_infinite]" />
-      
-      {isLoading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : null}
+      {/* Shimmer sweep on hover */}
+      <div className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-700 ease-in-out pointer-events-none"
+        style={{ background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.08), transparent)' }} />
+      {isLoading ? <Loader2 className="w-3.5 h-3.5 mr-2 animate-spin" /> : null}
       <span className="relative z-10">{children}</span>
     </button>
   );
 }
 
-export function HUDCard({ children, className, glow = false }: { children: React.ReactNode, className?: string, glow?: boolean }) {
+export function HUDCard({ children, className, glow = false, accentColor }: {
+  children: React.ReactNode;
+  className?: string;
+  glow?: boolean;
+  accentColor?: string;
+}) {
+  const color = accentColor || '#00C8FF';
   return (
-    <div className={cn(
-      "bg-surface/80 backdrop-blur-md border border-border clip-corner relative p-6 transition-all duration-300",
-      glow && "box-glow-cyan border-cyan/30",
-      className
-    )}>
-      {/* Decorative corner brackets */}
-      <div className="absolute top-0 left-0 w-3 h-3 border-t-2 border-l-2 border-cyan/50 pointer-events-none" />
-      <div className="absolute bottom-0 right-0 w-3 h-3 border-b-2 border-r-2 border-cyan/50 pointer-events-none" />
+    <div className={cn("relative p-5 transition-all duration-300", className)}
+      style={{
+        background: 'rgba(12,15,30,0.85)',
+        border: `1px solid ${color}20`,
+        backdropFilter: 'blur(12px)',
+        clipPath: 'polygon(0 0, 100% 0, 100% calc(100% - 12px), calc(100% - 12px) 100%, 0 100%)',
+        ...(glow ? { boxShadow: `0 0 30px ${color}12, inset 0 0 20px ${color}06` } : {}),
+      }}
+    >
+      {/* Corner brackets */}
+      <div className="absolute top-0 left-0 w-4 h-4 pointer-events-none"
+        style={{ borderTop: `1px solid ${color}80`, borderLeft: `1px solid ${color}80` }} />
+      <div className="absolute top-0 right-0 w-4 h-4 pointer-events-none"
+        style={{ borderTop: `1px solid ${color}80`, borderRight: `1px solid ${color}80` }} />
+      <div className="absolute bottom-0 left-0 w-4 h-4 pointer-events-none"
+        style={{ borderBottom: `1px solid ${color}80`, borderLeft: `1px solid ${color}80` }} />
       {children}
     </div>
   );
@@ -67,10 +98,12 @@ export function HUDCard({ children, className, glow = false }: { children: React
 
 export function TechInput({ className, error, ...props }: React.InputHTMLAttributes<HTMLInputElement> & { error?: boolean }) {
   return (
-    <input 
+    <input
       className={cn(
-        "w-full bg-background border border-border px-3 py-2 text-sm font-mono text-foreground focus:outline-none focus:border-cyan focus:ring-1 focus:ring-cyan/50 transition-colors clip-corner-sm placeholder:text-muted/50",
-        error && "border-red focus:border-red focus:ring-red/50",
+        "w-full bg-background/80 border px-3 py-2 text-sm font-mono text-foreground focus:outline-none transition-colors clip-corner-sm placeholder:text-muted/40",
+        error
+          ? "border-red/50 focus:border-red focus:shadow-[0_0_10px_rgba(255,68,68,0.2)]"
+          : "border-white/8 focus:border-cyan/50 focus:shadow-[0_0_10px_rgba(0,200,255,0.15)]",
         className
       )}
       {...props}
@@ -79,25 +112,26 @@ export function TechInput({ className, error, ...props }: React.InputHTMLAttribu
 }
 
 export function ScoreBadge({ score }: { score: number }) {
-  let color = 'text-red border-red bg-red/10 shadow-[0_0_10px_rgba(255,0,0,0.3)]';
-  let label = 'INSUFFISANT';
-  
+  let color: string, label: string, bg: string, glow: string;
+
   if (score >= 95) {
-    color = 'text-gold border-gold bg-gold/10 shadow-[0_0_10px_rgba(255,215,0,0.5)]';
-    label = 'GOD TIER';
+    color = '#FFD700'; label = 'GOD TIER'; bg = 'rgba(255,215,0,0.1)'; glow = '0 0 15px rgba(255,215,0,0.5)';
   } else if (score >= 85) {
-    color = 'text-green border-green bg-green/10 shadow-[0_0_10px_rgba(0,255,0,0.3)]';
-    label = 'EXCELLENT';
+    color = '#00FF41'; label = 'EXCELLENT'; bg = 'rgba(0,255,65,0.08)'; glow = '0 0 12px rgba(0,255,65,0.3)';
   } else if (score >= 70) {
-    color = 'text-cyan border-cyan bg-cyan/10 shadow-[0_0_10px_rgba(0,240,255,0.3)]';
-    label = 'BON';
+    color = '#00C8FF'; label = 'BON'; bg = 'rgba(0,200,255,0.08)'; glow = '0 0 12px rgba(0,200,255,0.3)';
+  } else {
+    color = '#FF4444'; label = 'INSUFFISANT'; bg = 'rgba(255,68,68,0.08)'; glow = '0 0 12px rgba(255,68,68,0.3)';
   }
 
   return (
-    <div className={cn("inline-flex items-center gap-2 border px-2 py-1 clip-corner-sm font-mono text-xs font-bold", color)}>
-      <span className="opacity-80">SCORE:</span>
-      <span className="text-[1.1em]">{score}</span>
-      <span className="opacity-80">[{label}]</span>
+    <div
+      className="inline-flex items-center gap-2 px-3 py-1.5 font-mono text-xs font-bold clip-corner-sm"
+      style={{ border: `1px solid ${color}50`, color, background: bg, boxShadow: glow }}
+    >
+      <span style={{ opacity: 0.7 }}>SCORE:</span>
+      <span style={{ fontSize: '1.1em', textShadow: `0 0 8px ${color}` }}>{score}</span>
+      <span className="text-[10px] tracking-[0.1em]" style={{ opacity: 0.7 }}>[{label}]</span>
     </div>
   );
 }
