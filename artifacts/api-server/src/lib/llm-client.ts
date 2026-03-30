@@ -9,19 +9,25 @@ const cerebras = new Cerebras({
   apiKey: process.env.CEREBRAS_API_KEY ?? "",
 });
 
-const anthropic = process.env.ANTHROPIC_API_KEY
-  ? new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
+const anthropic = process.env.AI_INTEGRATIONS_ANTHROPIC_API_KEY
+  ? new Anthropic({
+      apiKey: process.env.AI_INTEGRATIONS_ANTHROPIC_API_KEY,
+      baseURL: process.env.AI_INTEGRATIONS_ANTHROPIC_BASE_URL,
+    })
   : null;
 
-const openai = process.env.OPENAI_API_KEY
-  ? new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
+const openai = process.env.AI_INTEGRATIONS_OPENAI_API_KEY
+  ? new OpenAI({
+      apiKey: process.env.AI_INTEGRATIONS_OPENAI_API_KEY,
+      baseURL: process.env.AI_INTEGRATIONS_OPENAI_BASE_URL,
+    })
   : null;
 
 // ─── Modèles ──────────────────────────────────────────────────────────────────
 
 const CEREBRAS_MODEL = "llama-3.3-70b";
-const CLAUDE_MODEL = "claude-3-5-sonnet-20241022";
-const GPT_MODEL = "gpt-4o";
+const CLAUDE_MODEL = "claude-sonnet-4-6";
+const GPT_MODEL = "gpt-5.2";
 
 const MAX_RETRIES = 3;
 const RETRY_DELAY_MS = 1000;

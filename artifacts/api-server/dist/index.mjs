@@ -77039,11 +77039,17 @@ var logger = (0, import_pino.default)({
 var cerebras = new cerebras_cloud_sdk_default({
   apiKey: process.env.CEREBRAS_API_KEY ?? ""
 });
-var anthropic = process.env.ANTHROPIC_API_KEY ? new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY }) : null;
-var openai = process.env.OPENAI_API_KEY ? new OpenAI({ apiKey: process.env.OPENAI_API_KEY }) : null;
+var anthropic = process.env.AI_INTEGRATIONS_ANTHROPIC_API_KEY ? new Anthropic({
+  apiKey: process.env.AI_INTEGRATIONS_ANTHROPIC_API_KEY,
+  baseURL: process.env.AI_INTEGRATIONS_ANTHROPIC_BASE_URL
+}) : null;
+var openai = process.env.AI_INTEGRATIONS_OPENAI_API_KEY ? new OpenAI({
+  apiKey: process.env.AI_INTEGRATIONS_OPENAI_API_KEY,
+  baseURL: process.env.AI_INTEGRATIONS_OPENAI_BASE_URL
+}) : null;
 var CEREBRAS_MODEL = "llama-3.3-70b";
-var CLAUDE_MODEL = "claude-3-5-sonnet-20241022";
-var GPT_MODEL = "gpt-4o";
+var CLAUDE_MODEL = "claude-sonnet-4-6";
+var GPT_MODEL = "gpt-5.2";
 var MAX_RETRIES = 3;
 var RETRY_DELAY_MS = 1e3;
 async function sleep4(ms) {
